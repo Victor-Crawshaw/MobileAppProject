@@ -1,3 +1,4 @@
+// Views/GameNavigation.swift
 import Foundation
 
 // Enum to define all possible navigation destinations
@@ -10,6 +11,7 @@ enum GameNavigation: Hashable {
     case twentyQuestionsCategory
     case twentyQuestionsConfirm(category: String)
     case twentyQuestionsGame(category: String)
-    case twentyQuestionsResult(didWin: Bool, questionCount: Int, category: String)
+    
+    // MODIFIED: Pass the game log instead of just the count
+    case twentyQuestionsResult(didWin: Bool, questionLog: [RecordedQuestion], category: String)
 }
-

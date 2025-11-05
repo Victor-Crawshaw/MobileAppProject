@@ -1,77 +1,105 @@
+// Views/TwentyQuestions/ResultView.swift
 import SwiftUI
 
 struct ResultView: View {
     
-    // 1. This binding will now be valid!
     @Binding var navPath: NavigationPath
     
     let didWin: Bool
-    let questionCount: Int
+    let questionLog: [RecordedQuestion] // MODIFIED: Receive the log
     let category: String
     
-    init(navPath: Binding<NavigationPath>, didWin: Bool, questionCount: Int, category: String) {
+    // MODIFIED: Updated init
+    init(navPath: Binding<NavigationPath>, didWin: Bool, questionLog: [RecordedQuestion], category: String) {
         self._navPath = navPath
         self.didWin = didWin
-        self.questionCount = questionCount
+        self.questionLog = questionLog
         self.category = category
     }
     
     var body: some View {
         VStack(spacing: 20) {
-            Spacer()
             
-            if didWin {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 80))
-                    .foregroundColor(.green)
-                Text("They Guessed It!")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                Text(questionCount == 1 ? "It only took 1 question!" : "It only took \(questionCount) questions!")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-            } else {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 80))
-                    .foregroundColor(.red)
-                Text("They Failed!")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                Text("They couldn't guess the \(category.dropLast(1)) in 20 questions!")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
+            // Top Section (Win/Loss)
+            VStack(spacing: 15) {
+                if didWin {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 80))
+                        .foregroundColor(.green)
+                    Text("They Guessed It!")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                    // MODIFIED: Use log.count
+                    Text(questionLog.count == 1 ? "It only took 1 question!" : "It only took \(questionLog.count) questions!")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                } else {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 80))
+                        .foregroundColor(.red)
+                    Text("They Failed!")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                    Text("They couldn't guess the \(category.dropLast(1)) in 20 questions!")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
             }
+            .padding(.vertical)
             
-            Spacer()
+            // NEW: Game Log Section
+            Text("Game Log")
+                .font(.title2)
+                .fontWeight(.bold)
             
-            // 2. This button will now work!
-            Button(action: {
-                // Pop 3 views: Result, Game, Confirmation
-                // This lands you back on CategorySelectionView
-                navPath.removeLast(3)
-            }) {
-                Text("Play Again")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .font(.headline)
-                    .cornerRadius(1/2)
+            List(questionLog) { log in
+                HStack {
+                    Image(systemName: log.answer == .yes ? "checkmark.circle" : "xmark.circle")
+                        .foregroundColor(log.answer == .yes ? .green : .red)
+                        .font(.headline)
+                    
+                    VStack(alignment: .leading) {
+                        Text(log.questionText)
+                            .font(.body)
+                        Text("Answer: \(log.answer.rawValue.capitalized)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                }
+                .padding(.vertical, 4)
             }
+            .listStyle(InsetGroupedListStyle())
             
-            // 3. This button will also work!
-            Button(action: {
-                // Pop all views to return to the root (MainMenuView)
-                navPath.removeLast(navPath.count)
-            }) {
-                Text("Main Menu")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.secondary.opacity(0.2))
-                    .foregroundColor(.primary)
-                    .font(.headline)
-                    .cornerRadius(12)
+            // Bottom Buttons
+            VStack(spacing: 10) {
+                Button(action: {
+                    // Pop 3 views: Result, Game, Confirmation
+                    // This lands you back on CategorySelectionView
+                    navPath.removeLast(3)
+                }) {
+                    Text("Play Again")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .font(.headline)
+                        .cornerRadius(12) // Corrected from 1/2
+                }
+                
+                Button(action: {
+                    // Pop all views to return to the root (MainMenuView)
+                    navPath.removeLast(navPath.count)
+                }) {
+                    Text("Main Menu")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.secondary.opacity(0.2))
+                        .foregroundColor(.primary)
+                        .font(.headline)
+                        .cornerRadius(12)
+                }
             }
         }
         .padding()
@@ -80,10 +108,15 @@ struct ResultView: View {
 }
 
 struct ResultView_Previews: PreviewProvider {
+    static let mockLog: [RecordedQuestion] = [
+        RecordedQuestion(questionText: "Does it live in the water?", answer: .yes),
+        RecordedQuestion(questionText: "Is it a mammal?", answer: .yes),
+        RecordedQuestion(questionText: "Is it a dolphin?", answer: .no)
+    ]
+    
     static var previews: some View {
-        ResultView(navPath: .constant(NavigationPath()), didWin: true, questionCount: 7, category: "Animals")
+        ResultView(navPath: .constant(NavigationPath()), didWin: true, questionLog: mockLog, category: "Animals")
         
-        ResultView(navPath: .constant(NavigationPath()), didWin: false, questionCount: 20, category: "Animals")
+        ResultView(navPath: .constant(NavigationPath()), didWin: false, questionLog: mockLog, category: "Animals")
     }
 }
-

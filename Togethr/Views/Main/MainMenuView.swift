@@ -1,3 +1,4 @@
+// Views/Main/MainMenuView.swift
 import SwiftUI
 
 struct MainMenuView: View {
@@ -58,8 +59,10 @@ struct MainMenuView: View {
                     ConfirmationView(navPath: $navPath, category: category)
                 case .twentyQuestionsGame(let category):
                     GameView(navPath: $navPath, category: category)
-                case .twentyQuestionsResult(let didWin, let questionCount, let category):
-                    ResultView(navPath: $navPath, didWin: didWin, questionCount: questionCount, category: category)
+                    
+                // MODIFIED: This case now receives the questionLog
+                case .twentyQuestionsResult(let didWin, let questionLog, let category):
+                    ResultView(navPath: $navPath, didWin: didWin, questionLog: questionLog, category: category)
                 }
             }
         }
@@ -104,9 +107,9 @@ struct MainMenuView: View {
     }
 }
 
+// UNCHANGED PREVIEW
 struct MainMenuView_Previews: PreviewProvider {
     static var previews: some View {
         MainMenuView()
     }
 }
-

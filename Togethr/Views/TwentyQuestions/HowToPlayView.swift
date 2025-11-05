@@ -1,3 +1,4 @@
+// Views/TwentyQuestions/HowToPlayView.swift
 import SwiftUI
 
 struct HowToPlayView: View {
@@ -27,16 +28,16 @@ struct HowToPlayView: View {
                 Text("2. The Guessers")
                     .font(.title3)
                     .fontWeight(.semibold)
-                Text("Everyone else, the Guessers, take turns asking the Knower \"Yes/No\" questions. (e.g., \"Does it live in the water?\").")
+                Text("Everyone else, the Guessers, take turns asking the Knower \"Yes/No\" questions.")
                     .foregroundColor(.secondary)
             }
 
-            // 3. The Count
+            // 3. The Count (MODIFIED)
             VStack(alignment: .leading, spacing: 5) {
-                Text("3. The Count")
+                Text("3. The Log")
                     .font(.title3)
                     .fontWeight(.semibold)
-                Text("After each question, the Knower taps the \"Yes/No\" button to advance the counter.")
+                Text("For each question, the Knower taps 'Record', the Guesser asks, and the Knower taps 'Stop'. After the question appears, the Knower taps 'Yes' or 'No' to log the answer and advance.")
                     .foregroundColor(.secondary)
             }
             
@@ -68,9 +69,9 @@ struct HowToPlayView: View {
     }
 }
 
+// UNCHANGED PREVIEW
 struct HowToPlayView_Previews: PreviewProvider {
     static var previews: some View {
         HowToPlayView()
     }
 }
-
