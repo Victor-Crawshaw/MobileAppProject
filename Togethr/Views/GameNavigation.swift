@@ -11,7 +11,10 @@ enum GameNavigation: Hashable {
     case twentyQuestionsCategory
     case twentyQuestionsConfirm(category: String)
     case twentyQuestionsGame(category: String)
-    
-    // MODIFIED: Pass the game log instead of just the count
     case twentyQuestionsResult(didWin: Bool, questionLog: [RecordedQuestion], category: String)
+    
+    // --- NEW: Contact Flow ---
+    case contactPlayerSetup
+    case contactGame(players: [String], secretWord: String)
+    case contactResult(winner: String, secretWord: String)
 }

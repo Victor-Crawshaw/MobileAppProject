@@ -51,18 +51,29 @@ struct MainMenuView: View {
                 switch destination {
                 case .twentyQuestionsStart:
                     TwentyQuestionsStartView(navPath: $navPath)
+                
+                // --- MODIFIED: Pass navPath ---
                 case .contactStart:
-                    ContactStartView() // Still a placeholder
+                    ContactStartView(navPath: $navPath) // Pass the path
+                
                 case .twentyQuestionsCategory:
                     CategorySelectionView(navPath: $navPath)
                 case .twentyQuestionsConfirm(let category):
                     ConfirmationView(navPath: $navPath, category: category)
                 case .twentyQuestionsGame(let category):
                     GameView(navPath: $navPath, category: category)
-                    
-                // MODIFIED: This case now receives the questionLog
                 case .twentyQuestionsResult(let didWin, let questionLog, let category):
                     ResultView(navPath: $navPath, didWin: didWin, questionLog: questionLog, category: category)
+                    
+                // --- NEW: Add Contact destinations ---
+                case .contactPlayerSetup:
+                    ContactPlayerSetupView(navPath: $navPath)
+                
+                case .contactGame(let players, let secretWord):
+                    ContactGameView(navPath: $navPath, players: players, secretWord: secretWord)
+                    
+                case .contactResult(let winner, let secretWord):
+                    ContactResultView(navPath: $navPath, winner: winner, secretWord: secretWord)
                 }
             }
         }

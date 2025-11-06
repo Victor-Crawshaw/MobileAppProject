@@ -1,7 +1,11 @@
 import SwiftUI
 
-// This is the placeholder start screen for your "Contact" game
+// This is the start screen for your "Contact" game
 struct ContactStartView: View {
+    
+    // 1. Add navPath binding
+    @Binding var navPath: NavigationPath
+    
     var body: some View {
         VStack(spacing: 25) {
             Text("Contact")
@@ -10,10 +14,10 @@ struct ContactStartView: View {
             
             Spacer()
 
-            // Main "Start Game" button
+            // 2. Main "Start Game" button now navigates
             Button(action: {
-                // This would navigate to the Contact player setup
-                // e.g., navPath.append(GameNavigation.contactPlayerSetup)
+                // Navigate to the Contact player setup
+                navPath.append(GameNavigation.contactPlayerSetup)
             }) {
                 Text("Start Game")
                     .font(.title2)
@@ -27,7 +31,7 @@ struct ContactStartView: View {
             
             // "How to Play" button
             Button(action: {
-                // Show a modal or sheet with rules
+                // TODO: Show a modal or sheet with rules
             }) {
                 Text("How to Play")
                     .font(.headline)
@@ -49,8 +53,8 @@ struct ContactStartView: View {
 struct ContactStartView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            ContactStartView()
+            // Update preview to pass a constant path
+            ContactStartView(navPath: .constant(NavigationPath()))
         }
     }
 }
-
