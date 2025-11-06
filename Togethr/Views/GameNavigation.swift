@@ -7,16 +7,19 @@ enum GameNavigation: Hashable {
     case twentyQuestionsStart
     case contactStart
     
-    // 20 Questions Flow
+    // --- 20 Questions Flow (MODIFIED) ---
     case twentyQuestionsCategory
-    case twentyQuestionsConfirm(category: String)
-    case twentyQuestionsGame(category: String)
-    case twentyQuestionsResult(didWin: Bool, questionLog: [RecordedQuestion], category: String)
     
-    // --- NEW: Simplified Contact Flow ---
-    case contactWordSetup // Replaces player setup
-    case contactGame(secretWord: String) // No longer passes players
+    // NEW case for the input screen
+    case twentyQuestionsSecretInput(category: String)
     
-    // Result now reflects win/lose for the group
+    // MODIFIED to include secretWord
+    case twentyQuestionsConfirm(category: String, secretWord: String)
+    case twentyQuestionsGame(category: String, secretWord: String)
+    case twentyQuestionsResult(didWin: Bool, questionLog: [RecordedQuestion], category: String, secretWord: String)
+    
+    // --- Contact Flow (Unchanged from your version) ---
+    case contactWordSetup
+    case contactGame(secretWord: String)
     case contactResult(didGuessersWin: Bool, secretWord: String, reason: String)
 }

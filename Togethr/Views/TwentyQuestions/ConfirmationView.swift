@@ -1,3 +1,4 @@
+// Views/TwentyQuestions/ConfirmationView.swift
 import SwiftUI
 
 struct ConfirmationView: View {
@@ -5,29 +6,30 @@ struct ConfirmationView: View {
     @Binding var navPath: NavigationPath
     let category: String
     
+    // 1. ADD: It now needs to know the secret word
+    let secretWord: String
+    
     var body: some View {
         VStack(spacing: 20) {
             Spacer()
             
-            Text("Think of an")
+            // MODIFIED: Updated text
+            Text("Knower, pass the phone to the first Guesser.")
                 .font(.title)
+                .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
-            
-            Text(category.dropLast(1)) // "Animals" -> "Animal"
-                .font(.system(size: 40, weight: .bold, design: .rounded))
-                
-            Text("Got it? Tap 'Ready' to begin.")
-                .font(.headline)
-                .foregroundColor(.secondary)
-                .padding(.top, 20)
             
             Spacer()
             
-            // 1. Changed NavigationLink to a Button
+            // 2. MODIFIED: The button action now passes the secretWord
             Button(action: {
-                navPath.append(GameNavigation.twentyQuestionsGame(category: category))
+                navPath.append(GameNavigation.twentyQuestionsGame(
+                    category: category,
+                    secretWord: secretWord
+                ))
             }) {
-                Text("I'm Ready")
+                // MODIFIED: Updated button text
+                Text("I'm Ready to Guess")
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.blue)
@@ -43,7 +45,10 @@ struct ConfirmationView: View {
 
 struct ConfirmationView_Previews: PreviewProvider {
     static var previews: some View {
-        ConfirmationView(navPath: .constant(NavigationPath()), category: "Animals")
+        ConfirmationView(
+            navPath: .constant(NavigationPath()),
+            category: "Animals",
+            secretWord: "Lion" // Add mock data for preview
+        )
     }
 }
-

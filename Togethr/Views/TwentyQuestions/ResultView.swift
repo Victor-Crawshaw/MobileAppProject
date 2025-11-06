@@ -6,15 +6,19 @@ struct ResultView: View {
     @Binding var navPath: NavigationPath
     
     let didWin: Bool
-    let questionLog: [RecordedQuestion] // MODIFIED: Receive the log
+    let questionLog: [RecordedQuestion]
     let category: String
     
-    // MODIFIED: Updated init
-    init(navPath: Binding<NavigationPath>, didWin: Bool, questionLog: [RecordedQuestion], category: String) {
+    // 1. ADD: It now accepts the secret word
+    let secretWord: String
+    
+    // 2. MODIFIED: Updated init
+    init(navPath: Binding<NavigationPath>, didWin: Bool, questionLog: [RecordedQuestion], category: String, secretWord: String) {
         self._navPath = navPath
         self.didWin = didWin
         self.questionLog = questionLog
         self.category = category
+        self.secretWord = secretWord
     }
     
     var body: some View {
@@ -29,7 +33,11 @@ struct ResultView: View {
                     Text("They Guessed It!")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                    // MODIFIED: Use log.count
+                    
+                    // 3. NEW: Show the word
+                    Text("The secret was: \(secretWord)")
+                        .font(.title3)
+                    
                     Text(questionLog.count == 1 ? "It only took 1 question!" : "It only took \(questionLog.count) questions!")
                         .font(.headline)
                         .foregroundColor(.secondary)
@@ -40,6 +48,11 @@ struct ResultView: View {
                     Text("They Failed!")
                         .font(.largeTitle)
                         .fontWeight(.bold)
+                    
+                    // 3. NEW: Show the word
+                    Text("The secret was: \(secretWord)")
+                        .font(.title3)
+                    
                     Text("They couldn't guess the \(category.dropLast(1)) in 20 questions!")
                         .font(.headline)
                         .foregroundColor(.secondary)
@@ -48,7 +61,6 @@ struct ResultView: View {
             }
             .padding(.vertical)
             
-            // NEW: Game Log Section
             Text("Game Log")
                 .font(.title2)
                 .fontWeight(.bold)
@@ -75,9 +87,9 @@ struct ResultView: View {
             // Bottom Buttons
             VStack(spacing: 10) {
                 Button(action: {
-                    // Pop 3 views: Result, Game, Confirmation
-                    // This lands you back on CategorySelectionView
-                    navPath.removeLast(3)
+                    // MODIFIED: We now pop 4 views to get back to CategorySelection
+                    // Result, Game, Confirmation, SecretInput
+                    navPath.removeLast(4)
                 }) {
                     Text("Play Again")
                         .frame(maxWidth: .infinity)
@@ -85,11 +97,10 @@ struct ResultView: View {
                         .background(Color.blue)
                         .foregroundColor(.white)
                         .font(.headline)
-                        .cornerRadius(12) // Corrected from 1/2
+                        .cornerRadius(12)
                 }
                 
                 Button(action: {
-                    // Pop all views to return to the root (MainMenuView)
                     navPath.removeLast(navPath.count)
                 }) {
                     Text("Main Menu")
@@ -115,8 +126,20 @@ struct ResultView_Previews: PreviewProvider {
     ]
     
     static var previews: some View {
-        ResultView(navPath: .constant(NavigationPath()), didWin: true, questionLog: mockLog, category: "Animals")
+        ResultView(
+            navPath: .constant(NavigationPath()),
+            didWin: true,
+            questionLog: mockLog,
+            category: "Animals",
+            secretWord: "Whale" // Add mock data
+        )
         
-        ResultView(navPath: .constant(NavigationPath()), didWin: false, questionLog: mockLog, category: "Animals")
+        ResultView(
+            navPath: .constant(NavigationPath()),
+            didWin: false,
+            questionLog: mockLog,
+            category: "Animals",
+            secretWord: "Whale" // Add mock data
+        )
     }
 }

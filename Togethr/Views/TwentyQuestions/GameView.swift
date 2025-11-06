@@ -1,25 +1,19 @@
 // Views/TwentyQuestions/GameView.swift
 import SwiftUI
-import Speech // Import the Speech framework
+import Speech
 
 struct GameView: View {
     
     @Binding var navPath: NavigationPath
     let category: String
     
-    // 1. View model for speech recognition
+    // 1. ADD: It now knows the secret word
+    let secretWord: String
+    
     @StateObject private var speechRecognizer = SpeechRecognizer()
-    
-    // 2. State to hold the log of questions and answers
     @State private var questionLog: [RecordedQuestion] = []
-    
-    // 3. State to hold the current question's text after recording
     @State private var currentQuestionText: String = ""
-    
-    // 4. State to control when Yes/No buttons are active
     @State private var questionAwaitingAnswer: Bool = false
-    
-    // 5. NEW: State to control the presentation of the question log
     @State private var showingQuestionLog = false
     
     var body: some View {
@@ -30,17 +24,12 @@ struct GameView: View {
                 .font(.title)
                 .foregroundColor(.secondary)
             
-            // Display question number based on the log count
             Text("\(questionLog.count + 1)")
                 .font(.system(size: 80, weight: .bold, design: .rounded))
             
-            // ==========================================================
-            // MODIFIED: This block now shows the live transcript
-            // ==========================================================
+            // This is the VStack with the live-transcription update
             VStack {
                 if speechRecognizer.isRecording {
-                    // Show the LIVE transcript as it's being recorded
-                    // Use a placeholder if the transcript is empty
                     Text(speechRecognizer.transcript.isEmpty ? "Listening..." : speechRecognizer.transcript)
                         .font(.headline)
                         .fontWeight(.medium)
@@ -48,18 +37,14 @@ struct GameView: View {
                         .frame(maxWidth: .infinity)
                         .background(.regularMaterial)
                         .cornerRadius(12)
-                        .frame(minHeight: 60) // Use minHeight for consistency
-                    
+                        .frame(minHeight: 60)
                 } else {
-                    // This is the original behavior
                     if currentQuestionText.isEmpty {
-                        // Show the default prompt
                         Text("Tap the mic to ask a question.")
                             .font(.headline)
                             .foregroundColor(.secondary)
-                            .frame(minHeight: 60) // Use minHeight for consistency
+                            .frame(minHeight: 60)
                     } else {
-                        // Display the confirmed, final question
                         Text(currentQuestionText)
                             .font(.headline)
                             .fontWeight(.medium)
@@ -94,14 +79,10 @@ struct GameView: View {
                             .foregroundColor(.white)
                             .cornerRadius(12)
                     }
-                    // Disable record button if a question is waiting for an answer
                     .disabled(questionAwaitingAnswer)
                 }
             }
             .padding()
-            // ==========================================================
-            // End of Modified Block
-            // ==========================================================
             
             // Yes/No answer buttons
             HStack(spacing: 20) {
@@ -116,7 +97,7 @@ struct GameView: View {
                         .font(.headline)
                         .cornerRadius(12)
                 }
-                .disabled(!questionAwaitingAnswer) // Disable if no question is recorded
+                .disabled(!questionAwaitingAnswer)
                 
                 Button(action: {
                     logAnswer(answer: .no)
@@ -129,12 +110,11 @@ struct GameView: View {
                         .font(.headline)
                         .cornerRadius(12)
                 }
-                .disabled(!questionAwaitingAnswer) // Disable if no question is recorded
+                .disabled(!questionAwaitingAnswer)
             }
             
             Spacer()
             
-            // 6. NEW: Button to show the question log
             if !questionLog.isEmpty {
                 Button(action: {
                     showingQuestionLog = true
@@ -148,10 +128,12 @@ struct GameView: View {
             
             // "Guessed It" button
             Button(action: {
+                // 2. MODIFIED: Pass the secretWord to the result
                 navPath.append(GameNavigation.twentyQuestionsResult(
                     didWin: true,
-                    questionLog: questionLog, // Pass the whole log
-                    category: category
+                    questionLog: questionLog,
+                    category: category,
+                    secretWord: secretWord // Pass it here
                 ))
             }) {
                 Text("They Guessed It!")
@@ -173,43 +155,38 @@ struct GameView: View {
             speechRecognizer.requestAuthorization()
         }
         .onChange(of: speechRecognizer.isRecording) { isRecording in
-            // When recording stops, update the UI state
             if !isRecording && !speechRecognizer.transcript.isEmpty {
                 self.currentQuestionText = speechRecognizer.transcript
                 self.questionAwaitingAnswer = true
             }
         }
-        // 7. NEW: Sheet modifier to present the log
         .sheet(isPresented: $showingQuestionLog) {
             QuestionLogSheetView(questionLog: questionLog)
         }
     }
     
-    // Updated game logic
+    // 3. MODIFIED: The logAnswer function must also pass the secretWord
     func logAnswer(answer: Answer) {
-        // Create the log entry
         let newLogEntry = RecordedQuestion(questionText: currentQuestionText, answer: answer)
         questionLog.append(newLogEntry)
         
-        // Reset for the next question
         currentQuestionText = ""
         speechRecognizer.resetTranscript()
         questionAwaitingAnswer = false
         
-        // Check for 20 questions limit
         if questionLog.count >= 20 {
-            // Used up 20 questions, this is the fail state
+            // Used up 20 questions
             navPath.append(GameNavigation.twentyQuestionsResult(
                 didWin: false,
-                questionLog: questionLog, // Pass the log
-                category: category
+                questionLog: questionLog,
+                category: category,
+                secretWord: secretWord // Pass it here too
             ))
         }
     }
 }
 
-// 8. NEW: A simple view for the sheet content
-// (This struct stays in the same file)
+// (The QuestionLogSheetView struct is unchanged)
 struct QuestionLogSheetView: View {
     @Environment(\.dismiss) var dismiss
     let questionLog: [RecordedQuestion]
@@ -275,15 +252,17 @@ struct QuestionLogSheetView: View {
             }
         }
         .padding()
-        // Prevents the sheet from being a small "detent"
         .presentationDetents([.medium, .large])
     }
 }
 
 
-// UNCHANGED PREVIEW
 struct GameView_Previews: PreviewProvider {
     static var previews: some View {
-        GameView(navPath: .constant(NavigationPath()), category: "Animals")
+        GameView(
+            navPath: .constant(NavigationPath()),
+            category: "Animals",
+            secretWord: "Sloth" // Add mock data
+        )
     }
 }

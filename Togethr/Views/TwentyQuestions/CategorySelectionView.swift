@@ -1,3 +1,4 @@
+// Views/TwentyQuestions/CategorySelectionView.swift
 import SwiftUI
 
 struct CategorySelectionView: View {
@@ -13,18 +14,18 @@ struct CategorySelectionView: View {
                 .fontWeight(.bold)
                 .padding(.bottom, 20)
             
-            // 1. The List no longer uses NavigationLink
             List(categories, id: \.self) { category in
-                // 2. Use a Button to append the next destination
+                // MODIFIED: This button's action has changed
                 Button(action: {
-                    navPath.append(GameNavigation.twentyQuestionsConfirm(category: category))
+                    // This now navigates to the NEW SecretInputView
+                    navPath.append(GameNavigation.twentyQuestionsSecretInput(category: category))
                 }) {
                     HStack {
                         Text(category)
                             .font(.headline)
-                            .foregroundColor(.primary) // Make text look normal
+                            .foregroundColor(.primary)
                         Spacer()
-                        Image(systemName: "chevron.right") // Add manual chevron
+                        Image(systemName: "chevron.right")
                             .foregroundColor(.secondary)
                     }
                 }
@@ -42,4 +43,3 @@ struct CategorySelectionView_Previews: PreviewProvider {
         CategorySelectionView(navPath: .constant(NavigationPath()))
     }
 }
-

@@ -3,7 +3,6 @@ import SwiftUI
 
 struct MainMenuView: View {
     
-    // 1. Add state for the navigation path
     @State private var navPath = NavigationPath()
     
     private let allGames: [Game] = Game.mockData
@@ -13,7 +12,6 @@ struct MainMenuView: View {
     ]
     
     var body: some View {
-        // 2. Bind the path to the NavigationStack
         NavigationStack(path: $navPath) {
             ZStack {
                 LinearGradient(
@@ -32,8 +30,6 @@ struct MainMenuView: View {
                         
                         LazyVGrid(columns: columns, spacing: 20) {
                             ForEach(allGames) { game in
-                                // 3. Change to NavigationLink(value:)
-                                // This adds a value to the navPath instead of a view
                                 NavigationLink(value: navigationValue(for: game)) {
                                     GameCard(game: game)
                                 }
@@ -45,35 +41,52 @@ struct MainMenuView: View {
                 }
             }
             .navigationBarHidden(true)
-            // 4. Add .navigationDestination to handle all path values
+            
+            // ==========================================================
+            // MODIFIED: This section is updated with all new destinations
+            // ==========================================================
             .navigationDestination(for: GameNavigation.self) { destination in
-                // This view builder routes to the correct view
                 switch destination {
                 
                 // --- 20 Questions Flow ---
                 case .twentyQuestionsStart:
                     TwentyQuestionsStartView(navPath: $navPath)
+                    
                 case .twentyQuestionsCategory:
                     CategorySelectionView(navPath: $navPath)
-                case .twentyQuestionsConfirm(let category):
-                    ConfirmationView(navPath: $navPath, category: category)
-                case .twentyQuestionsGame(let category):
-                    GameView(navPath: $navPath, category: category)
-                case .twentyQuestionsResult(let didWin, let questionLog, let category):
-                    ResultView(navPath: $navPath, didWin: didWin, questionLog: questionLog, category: category)
                     
-                // --- Contact Flow (MODIFIED) ---
-                case .contactStart:
-                    ContactStartView(navPath: $navPath) // Pass the path
+                // NEW: Handles the secret input view
+                case .twentyQuestionsSecretInput(let category):
+                    TwentyQuestionsSecretInputView(navPath: $navPath, category: category)
+                    
+                // UPDATED: Handles the modified confirmation view
+                case .twentyQuestionsConfirm(let category, let secretWord):
+                    ConfirmationView(navPath: $navPath, category: category, secretWord: secretWord)
+                    
+                // UPDATED: Handles the modified game view
+                case .twentyQuestionsGame(let category, let secretWord):
+                    GameView(navPath: $navPath, category: category, secretWord: secretWord)
+                        
+                // UPDATED: Handles the modified result view
+                case .twentyQuestionsResult(let didWin, let questionLog, let category, let secretWord):
+                    ResultView(navPath: $navPath, didWin: didWin, questionLog: questionLog, category: category, secretWord: secretWord)
                 
+                // --- Contact Flow ---
+                case .contactStart:
+                    ContactStartView(navPath: $navPath)
+            
                 case .contactWordSetup:
                     ContactWordSetupView(navPath: $navPath)
-                
+            
                 case .contactGame(let secretWord):
-                    ContactGameView(navPath: $navPath, secretWord: secretWord)
-                    
+                    // You'll need to create this view
+                    // ContactGameView(navPath: $navPath, secretWord: secretWord)
+                    Text("Contact Game View (secret: \(secretWord))") // Placeholder
+            
                 case .contactResult(let didGuessersWin, let secretWord, let reason):
-                    ContactResultView(navPath: $navPath, didGuessersWin: didGuessersWin, secretWord: secretWord, reason: reason)
+                    // You'll need to create this view
+                    // ContactResultView(navPath: $navPath, didGuessersWin: didGuessersWin, secretWord: secretWord, reason: reason)
+                     Text("Contact Result View") // Placeholder
                 }
             }
         }
@@ -105,7 +118,7 @@ struct MainMenuView: View {
         .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
     }
     
-    // 5. Helper to return the correct navigation value
+    // Helper to return the correct navigation value
     private func navigationValue(for game: Game) -> GameNavigation {
         switch game.name {
         case "20 Questions":
