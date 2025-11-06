@@ -15,7 +15,7 @@ struct ContactWordSetupView: View {
                     .autocorrectionDisabled(true)
                     .autocapitalization(.allCharacters)
                 
-                Text("Only the Guessers should see this screen. Enter the secret word and tap 'Start Game'.")
+                Text("Only the defender (person coming up with the secret word) should see this screen. Enter the secret word and tap 'Start Game'.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
