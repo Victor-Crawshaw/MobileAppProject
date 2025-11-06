@@ -19,7 +19,7 @@ struct HowToPlayView: View {
                 Text("1. The Knower")
                     .font(.title3)
                     .fontWeight(.semibold)
-                Text("One person, the Knower, holds the phone and thinks of a secret (e.g., \"an animal\").")
+                Text("One person, the Knower, thinks of a secret (e.g., \"an animal\").")
                     .foregroundColor(.secondary)
             }
             
@@ -28,7 +28,7 @@ struct HowToPlayView: View {
                 Text("2. The Guessers")
                     .font(.title3)
                     .fontWeight(.semibold)
-                Text("Everyone else, the Guessers, take turns asking the Knower \"Yes/No\" questions.")
+                Text("Everyone else, the Guessers, take turns asking the Knower \"Yes/No\" questions, while holding the phone and recording these questions.")
                     .foregroundColor(.secondary)
             }
 
@@ -37,7 +37,7 @@ struct HowToPlayView: View {
                 Text("3. The Log")
                     .font(.title3)
                     .fontWeight(.semibold)
-                Text("For each question, the Knower taps 'Record', the Guesser asks, and the Knower taps 'Stop'. After the question appears, the Knower taps 'Yes' or 'No' to log the answer and advance.")
+                Text("For each question, the Guesser taps 'Record', asks their question, then stops recording. After the question appears, the Knower taps 'Yes' or 'No' to log the answer and advance.")
                     .foregroundColor(.secondary)
             }
             
@@ -46,7 +46,7 @@ struct HowToPlayView: View {
                 Text("4. The Win")
                     .font(.title3)
                     .fontWeight(.semibold)
-                Text("When a Guesser says the final correct answer, the Knower taps \"They Guessed It!\" to win.")
+                Text("When a Guesser says the final correct answer, they tap \"They Guessed It!\" to win.")
                     .foregroundColor(.secondary)
             }
 

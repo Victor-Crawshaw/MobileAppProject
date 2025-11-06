@@ -34,23 +34,41 @@ struct GameView: View {
             Text("\(questionLog.count + 1)")
                 .font(.system(size: 80, weight: .bold, design: .rounded))
             
-            // New UI for recording and displaying the transcript
+            // ==========================================================
+            // MODIFIED: This block now shows the live transcript
+            // ==========================================================
             VStack {
-                if currentQuestionText.isEmpty {
-                    Text(speechRecognizer.isRecording ? "Listening..." : "Tap the mic to ask a question.")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                        .frame(height: 60)
-                } else {
-                    // Display the confirmed question
-                    Text(currentQuestionText)
+                if speechRecognizer.isRecording {
+                    // Show the LIVE transcript as it's being recorded
+                    // Use a placeholder if the transcript is empty
+                    Text(speechRecognizer.transcript.isEmpty ? "Listening..." : speechRecognizer.transcript)
                         .font(.headline)
                         .fontWeight(.medium)
                         .padding()
                         .frame(maxWidth: .infinity)
                         .background(.regularMaterial)
                         .cornerRadius(12)
-                        .frame(minHeight: 60)
+                        .frame(minHeight: 60) // Use minHeight for consistency
+                    
+                } else {
+                    // This is the original behavior
+                    if currentQuestionText.isEmpty {
+                        // Show the default prompt
+                        Text("Tap the mic to ask a question.")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                            .frame(minHeight: 60) // Use minHeight for consistency
+                    } else {
+                        // Display the confirmed, final question
+                        Text(currentQuestionText)
+                            .font(.headline)
+                            .fontWeight(.medium)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(.regularMaterial)
+                            .cornerRadius(12)
+                            .frame(minHeight: 60)
+                    }
                 }
                 
                 // Record / Stop button
@@ -81,6 +99,9 @@ struct GameView: View {
                 }
             }
             .padding()
+            // ==========================================================
+            // End of Modified Block
+            // ==========================================================
             
             // Yes/No answer buttons
             HStack(spacing: 20) {
@@ -188,7 +209,7 @@ struct GameView: View {
 }
 
 // 8. NEW: A simple view for the sheet content
-// (You can place this at the bottom of the GameView.swift file)
+// (This struct stays in the same file)
 struct QuestionLogSheetView: View {
     @Environment(\.dismiss) var dismiss
     let questionLog: [RecordedQuestion]
