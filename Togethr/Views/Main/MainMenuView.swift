@@ -49,13 +49,10 @@ struct MainMenuView: View {
             .navigationDestination(for: GameNavigation.self) { destination in
                 // This view builder routes to the correct view
                 switch destination {
+                
+                // --- 20 Questions Flow ---
                 case .twentyQuestionsStart:
                     TwentyQuestionsStartView(navPath: $navPath)
-                
-                // --- MODIFIED: Pass navPath ---
-                case .contactStart:
-                    ContactStartView(navPath: $navPath) // Pass the path
-                
                 case .twentyQuestionsCategory:
                     CategorySelectionView(navPath: $navPath)
                 case .twentyQuestionsConfirm(let category):
@@ -65,15 +62,18 @@ struct MainMenuView: View {
                 case .twentyQuestionsResult(let didWin, let questionLog, let category):
                     ResultView(navPath: $navPath, didWin: didWin, questionLog: questionLog, category: category)
                     
-                // --- NEW: Add Contact destinations ---
-                case .contactPlayerSetup:
-                    ContactPlayerSetupView(navPath: $navPath)
+                // --- Contact Flow (MODIFIED) ---
+                case .contactStart:
+                    ContactStartView(navPath: $navPath) // Pass the path
                 
-                case .contactGame(let players, let secretWord):
-                    ContactGameView(navPath: $navPath, players: players, secretWord: secretWord)
+                case .contactWordSetup:
+                    ContactWordSetupView(navPath: $navPath)
+                
+                case .contactGame(let secretWord):
+                    ContactGameView(navPath: $navPath, secretWord: secretWord)
                     
-                case .contactResult(let winner, let secretWord):
-                    ContactResultView(navPath: $navPath, winner: winner, secretWord: secretWord)
+                case .contactResult(let didGuessersWin, let secretWord, let reason):
+                    ContactResultView(navPath: $navPath, didGuessersWin: didGuessersWin, secretWord: secretWord, reason: reason)
                 }
             }
         }

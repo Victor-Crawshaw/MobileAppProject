@@ -1,10 +1,13 @@
+// Views/Contact/ContactStartView.swift
 import SwiftUI
 
 // This is the start screen for your "Contact" game
 struct ContactStartView: View {
     
-    // 1. Add navPath binding
     @Binding var navPath: NavigationPath
+    
+    // State to control the "How to Play" modal
+    @State private var showingHowToPlay = false
     
     var body: some View {
         VStack(spacing: 25) {
@@ -14,24 +17,24 @@ struct ContactStartView: View {
             
             Spacer()
 
-            // 2. Main "Start Game" button now navigates
+            // Main "Start Game" button
             Button(action: {
-                // Navigate to the Contact player setup
-                navPath.append(GameNavigation.contactPlayerSetup)
+                // Navigate to the word setup screen
+                navPath.append(GameNavigation.contactWordSetup)
             }) {
                 Text("Start Game")
                     .font(.title2)
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.green) // Different color
+                    .background(Color.green)
                     .foregroundColor(.white)
                     .cornerRadius(12)
             }
             
             // "How to Play" button
             Button(action: {
-                // TODO: Show a modal or sheet with rules
+                showingHowToPlay = true
             }) {
                 Text("How to Play")
                     .font(.headline)
@@ -47,13 +50,16 @@ struct ContactStartView: View {
         .padding()
         .navigationTitle("Contact")
         .navigationBarTitleDisplayMode(.inline)
+        // Add the sheet modifier to present the rules
+        .sheet(isPresented: $showingHowToPlay) {
+            ContactHowToPlayView()
+        }
     }
 }
 
 struct ContactStartView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            // Update preview to pass a constant path
             ContactStartView(navPath: .constant(NavigationPath()))
         }
     }

@@ -5,26 +5,31 @@ struct ContactResultView: View {
     
     @Binding var navPath: NavigationPath
     
-    let winner: String
+    let didGuessersWin: Bool
     let secretWord: String
+    let reason: String
     
     var body: some View {
         VStack(spacing: 30) {
             
             Spacer()
             
-            // Top Section
-            Image(systemName: "star.fill")
+            // Top Section (Win/Loss)
+            Image(systemName: didGuessersWin ? "party.popper.fill" : "hand.thumbsdown.fill")
                 .font(.system(size: 80))
-                .foregroundColor(.yellow)
+                .foregroundColor(didGuessersWin ? .green : .red)
             
-            Text(winner) // e.g., "Player 1 Wins!" or "It's a tie!"
+            Text(didGuessersWin ? "Guessers Win!" : "Guessers Lose!")
                 .font(.largeTitle)
                 .fontWeight(.bold)
             
-            Text("The secret word was:")
+            Text(reason) // e.g., "You guessed the word!"
                 .font(.headline)
                 .foregroundColor(.secondary)
+            
+            Text("The secret word was:")
+                .font(.title3)
+                .padding(.top, 10)
             
             Text(secretWord)
                 .font(.system(size: 32, weight: .bold, design: .rounded))
@@ -35,7 +40,7 @@ struct ContactResultView: View {
             VStack(spacing: 10) {
                 Button(action: {
                     // Pop 2 views: Result, Game
-                    // This lands you back on ContactPlayerSetupView
+                    // This lands you back on ContactWordSetupView
                     navPath.removeLast(2)
                 }) {
                     Text("Play Again")
@@ -68,10 +73,20 @@ struct ContactResultView: View {
 
 struct ContactResultView_Previews: PreviewProvider {
     static var previews: some View {
+        // Win state preview
         ContactResultView(
             navPath: .constant(NavigationPath()),
-            winner: "Alice Wins!",
-            secretWord: "SWIFTUI"
+            didGuessersWin: true,
+            secretWord: "SWIFTUI",
+            reason: "You guessed the word!"
+        )
+        
+        // Lose state preview
+        ContactResultView(
+            navPath: .constant(NavigationPath()),
+            didGuessersWin: false,
+            secretWord: "DEVELOPER",
+            reason: "You gave up!"
         )
     }
 }

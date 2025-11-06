@@ -13,8 +13,10 @@ enum GameNavigation: Hashable {
     case twentyQuestionsGame(category: String)
     case twentyQuestionsResult(didWin: Bool, questionLog: [RecordedQuestion], category: String)
     
-    // --- NEW: Contact Flow ---
-    case contactPlayerSetup
-    case contactGame(players: [String], secretWord: String)
-    case contactResult(winner: String, secretWord: String)
+    // --- NEW: Simplified Contact Flow ---
+    case contactWordSetup // Replaces player setup
+    case contactGame(secretWord: String) // No longer passes players
+    
+    // Result now reflects win/lose for the group
+    case contactResult(didGuessersWin: Bool, secretWord: String, reason: String)
 }
