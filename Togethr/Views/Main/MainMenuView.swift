@@ -120,10 +120,16 @@ struct MainMenuView: View {
                     ContactWordSetupView(navPath: $navPath)
             
                 case .contactGame(let secretWord):
-                    Text("Contact Game View (secret: \(secretWord))") // Placeholder
-            
+                    ContactGameView(navPath: $navPath, secretWord: secretWord)
+
                 case .contactResult(let didGuessersWin, let secretWord, let reason):
-                    Text("Contact Result View") // Placeholder
+                    ContactResultView(
+                        navPath: $navPath,
+                        didGuessersWin: didGuessersWin,
+                        secretWord: secretWord,
+                        reason: reason
+                    )
+
                 }
             }
         }

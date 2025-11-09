@@ -66,6 +66,9 @@ struct GameView: View {
                     .background(.regularMaterial)
                     .cornerRadius(20)
                     
+                    // --- MODIFICATION START ---
+                    // This block is updated to handle the "Re-record" state
+                    
                     if speechRecognizer.isRecording {
                         Button(action: {
                             speechRecognizer.stopTranscribing()
@@ -79,20 +82,36 @@ struct GameView: View {
                                 .foregroundColor(.white)
                         }
                     } else {
+                        // This button is now dual-purpose: Record or Re-record
                         Button(action: {
-                            speechRecognizer.startTranscribing()
+                            if questionAwaitingAnswer {
+                                // Action 1: Re-record
+                                resetCurrentQuestion()
+                            } else {
+                                // Action 2: Start recording
+                                speechRecognizer.startTranscribing()
+                            }
                         }) {
-                            Label("Record Question", systemImage: "mic.fill")
-                                .font(.headline)
-                                .fontWeight(.heavy)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 18)
-                                // MODIFIED: Record button is now blue
-                                .background(Capsule().fill(Color.blue.gradient))
-                                .foregroundColor(.white)
+                            // The label changes based on the state
+                            if questionAwaitingAnswer {
+                                Label("Re-record Question", systemImage: "arrow.clockwise")
+                            } else {
+                                Label("Record Question", systemImage: "mic.fill")
+                            }
                         }
-                        .disabled(questionAwaitingAnswer)
+                        .font(.headline)
+                        .fontWeight(.heavy)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        // The background color also changes
+                        .background(Capsule().fill(
+                            questionAwaitingAnswer ? Color.orange.gradient : Color.blue.gradient
+                        ))
+                        .foregroundColor(.white)
+                        // The .disabled modifier is no longer needed
                     }
+                    
+                    // --- MODIFICATION END ---
                 }
                 .padding(.horizontal)
                 
@@ -108,7 +127,7 @@ struct GameView: View {
                             .background(Capsule().fill(Color.green.gradient))
                             .foregroundColor(.white)
                     }
-                    .disabled(!questionAwaitingAnswer)
+                    .disabled(!questionAwaitingAnswer) // This correctly disables/enables
                     
                     Button(action: {
                         logAnswer(answer: .no)
@@ -121,7 +140,7 @@ struct GameView: View {
                             .background(Capsule().fill(Color.red.gradient))
                             .foregroundColor(.white)
                     }
-                    .disabled(!questionAwaitingAnswer)
+                    .disabled(!questionAwaitingAnswer) // This correctly disables/enables
                 }
                 .padding(.horizontal)
                 
@@ -154,11 +173,9 @@ struct GameView: View {
                         .fontWeight(.semibold)
                         .background( // Use secondary button style
                             Capsule()
-                                // MODIFIED: Guessed It button is now gold
                                 .stroke(Color.yellow.opacity(0.7), lineWidth: 2)
                                 .fill(Color.yellow.opacity(0.2))
                         )
-                        // Text color changed to yellow for contrast
                         .foregroundColor(.yellow)
                 }
             }
@@ -179,10 +196,20 @@ struct GameView: View {
         }
     }
     
+    // --- NEW FUNCTION ---
+    // Resets the UI to allow for a new recording attempt
+    func resetCurrentQuestion() {
+        currentQuestionText = ""
+        speechRecognizer.resetTranscript()
+        questionAwaitingAnswer = false
+    }
+    // --- END NEW FUNCTION ---
+    
     func logAnswer(answer: Answer) {
         let newLogEntry = RecordedQuestion(questionText: currentQuestionText, answer: answer)
         questionLog.append(newLogEntry)
         
+        // This logic is now safe because resetCurrentQuestion() is separate
         currentQuestionText = ""
         speechRecognizer.resetTranscript()
         questionAwaitingAnswer = false
