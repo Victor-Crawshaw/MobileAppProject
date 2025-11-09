@@ -35,63 +35,89 @@ struct SecretWordInputView: View {
     
     // MARK: - Body
     var body: some View {
-        VStack(spacing: 20) {
-            Spacer()
-            
-            Text("Enter your secret")
-                .font(.title)
-                .foregroundColor(.secondary)
-            
-            Text(title)
-                .font(.system(size: 40, weight: .bold, design: .rounded))
-                .multilineTextAlignment(.center)
-            
-            if let subtitle = subtitle {
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
+        // NEW: ZStack for gradient background
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.blue.opacity(0.7),
+                    Color.cyan.opacity(0.7)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .edgesIgnoringSafeArea(.all)
+            .onTapGesture {
+                isTextFieldFocused = false // Dismiss keyboard on bg tap
             }
             
-            VStack(spacing: 8) {
-                TextField(placeholder, text: $secretWord)
-                    .font(.title2)
-                    .padding()
-                    .background(.regularMaterial)
-                    .cornerRadius(12)
+            VStack(spacing: 20) {
+                Spacer()
+                
+                // MODIFIED: Title styling
+                Text("Enter your secret")
+                    .font(.title)
+                    .foregroundColor(.white.opacity(0.8))
+                
+                Text(title)
+                    .font(.system(size: 40, weight: .bold, design: .rounded))
                     .multilineTextAlignment(.center)
+                    .foregroundColor(.white) // MODIFIED: Color
+                
+                if let subtitle = subtitle {
+                    Text(subtitle)
+                        .font(.headline)
+                        .foregroundColor(.white.opacity(0.8)) // MODIFIED: Color
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+                
+                // MODIFIED: Text Field styled for dark background
+                TextField(placeholder, text: $secretWord)
                     .focused($isTextFieldFocused)
-                    .padding(.horizontal)
-                    .onChange(of: secretWord) { _ in
-                        // Clear error when user types
-                        errorMessage = nil
-                    }
+                    .font(.title2)
+                    .padding(16)
+                    .background(Color.black.opacity(0.2)) // Darker inset bg
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.white.opacity(0.5), lineWidth: 1)
+                    )
+                    .foregroundColor(.white) // Text color
+                    .accentColor(.white) // Cursor color
+                    .padding(.horizontal, 30)
                 
                 if let errorMessage = errorMessage {
                     Text(errorMessage)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .padding(.horizontal)
+                        .font(.headline)
+                        .foregroundColor(.red) // Error color
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 30)
                 }
+                
+                Spacer()
+                
+                // MODIFIED: Button to match primary green style
+                Button(action: handleConfirm) {
+                    Text(buttonText)
+                        .font(.title3)
+                        .fontWeight(.heavy)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            Capsule()
+                                .fill(secretWord.isEmpty ? Color.gray.gradient : Color.green.gradient)
+                                .shadow(color: .black.opacity(0.3), radius: 5, y: 5)
+                        )
+                        .foregroundColor(.white)
+                }
+                .disabled(secretWord.isEmpty)
+                .padding(.horizontal, 30)
+                .padding(.bottom)
             }
-            
-            Spacer()
-            
-            Button(action: handleConfirm) {
-                Text(buttonText)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(secretWord.isEmpty ? Color.secondary.opacity(0.5) : Color.blue)
-                    .foregroundColor(.white)
-                    .font(.headline)
-                    .cornerRadius(12)
+            .padding()
+            .onAppear {
+                isTextFieldFocused = true
             }
-            .disabled(secretWord.isEmpty)
-        }
-        .padding()
-        .onAppear {
-            isTextFieldFocused = true
         }
     }
     

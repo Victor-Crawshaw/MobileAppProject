@@ -19,80 +19,119 @@ struct ContactGameView: View {
     }
     
     var body: some View {
-        VStack(spacing: 20) {
+        // NEW: ZStack for gradient
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.blue.opacity(0.7),
+                    Color.cyan.opacity(0.7)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .edgesIgnoringSafeArea(.all)
             
-            Spacer()
-            
-            // --- Displayed Word ---
-            Text(displayedWord)
-                .font(.system(size: 64, weight: .bold, design: .rounded))
-                .kerning(5) // Add spacing between letters
-                .padding()
-            
-            Text("The word has \(secretWord.count) letters.")
-                .font(.headline)
-                .foregroundColor(.secondary)
-            
-            Spacer()
-            
-            // --- Game Actions for Word Master ---
-            VStack(spacing: 12) {
-                // "Reveal Next Letter" button
-                Button(action: revealNextLetter) {
-                    Text("Reveal Next Letter")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .font(.headline)
-                        .cornerRadius(12)
-                }
-                // Disable if all letters are already revealed
-                .disabled(revealedCount == secretWord.count)
+            VStack(spacing: 20) {
                 
-                // "Guessers Got It!" button
-                Button(action: {
-                    // Win condition
-                    navigateToResult(didWin: true, reason: "You guessed the word!")
-                }) {
-                    Text("Guessers Got It!")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.green)
-                        .foregroundColor(.white)
-                        .font(.headline)
-                        .cornerRadius(12)
-                }
+                Spacer()
                 
-                // "Guessers Give Up" button
-                Button(action: {
-                    // Lose condition
-                    navigateToResult(didWin: false, reason: "You gave up!")
-                }) {
-                    Text("Guessers Give Up")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.red)
-                        .foregroundColor(.white)
-                        .font(.headline)
-                        .cornerRadius(12)
+                // --- Displayed Word ---
+                // MODIFIED: Styled to match 20Q "Question #"
+                Text(displayedWord)
+                    .font(.system(size: 80, weight: .bold, design: .rounded))
+                    .kerning(5) // Add spacing between letters
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.3), radius: 5, y: 5)
+                    .padding()
+                
+                Text("The word has \(secretWord.count) letters.")
+                    .font(.headline)
+                    .foregroundColor(.white.opacity(0.8)) // MODIFIED: Color
+                
+                Spacer()
+                
+                // --- Game Actions for Word Master ---
+                // MODIFIED: Switched to Capsule buttons
+                VStack(spacing: 15) {
+                    
+                    // MODIFIED: "Reveal Next Letter" button (Primary Green)
+                    Button(action: revealNextLetter) {
+                        Text("Reveal Next Letter")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(
+                                Capsule()
+                                    .fill(Color.green.gradient)
+                                    .shadow(color: .black.opacity(0.2), radius: 4, y: 4)
+                            )
+                            .foregroundColor(.white)
+                    }
+                    
+                    // MODIFIED: "Guesser Won" button (Primary Green)
+                    Button(action: {
+                        navigateToResult(didWin: true, reason: "You guessed the word!")
+                    }) {
+                        Text("Guesser Won!")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(
+                                Capsule()
+                                    .fill(Color.green.gradient)
+                                    .shadow(color: .black.opacity(0.2), radius: 4, y: 4)
+                            )
+                            .foregroundColor(.white)
+                    }
+                    
+                    // MODIFIED: "Give Up" button (Destructive Red)
+                    Button(action: {
+                        navigateToResult(didWin: false, reason: "The guessers gave up!")
+                    }) {
+                        Text("Give Up")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(
+                                Capsule()
+                                    .fill(Color.red.gradient) // Red for destructive
+                                    .shadow(color: .black.opacity(0.2), radius: 4, y: 4)
+                            )
+                            .foregroundColor(.white)
+                    }
+                    
                 }
+                .padding(.horizontal, 30)
+                
+                // MODIFIED: "Undo" button (Secondary Stroked)
+                Button(action: undoLastAction) {
+                    Text("Undo Last Reveal")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            Capsule()
+                                .stroke(Color.white.opacity(0.7), lineWidth: 2)
+                                .fill(Color.white.opacity(0.2))
+                        )
+                        .foregroundColor(.white)
+                }
+                .disabled(history.isEmpty) // Disable if no history
+                .padding(.top, 30)
+                .padding(.horizontal, 30)
+                
             }
-            
-            // --- Undo Button ---
-            Button(action: undoLastAction) {
-                Label("Undo Last Letter Reveal", systemImage: "arrow.uturn.backward")
-            }
-            .disabled(history.isEmpty) // Disable if no history
-            .padding(.top, 30)
-            
+            .padding()
         }
-        .padding()
         .navigationBarBackButtonHidden(true)
         .navigationTitle("Contact")
     }
     
-    // --- Game Logic Functions ---
+    // --- Game Logic Functions (UNCHANGED) ---
     
     func saveCurrentState() {
         // Save the current letter count to the history
@@ -130,7 +169,7 @@ struct ContactGameView: View {
 
 struct ContactGameView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
+        NavigationStack { // MODIFIED: Use NavigationStack
             ContactGameView(
                 navPath: .constant(NavigationPath()),
                 secretWord: "ELEPHANT"

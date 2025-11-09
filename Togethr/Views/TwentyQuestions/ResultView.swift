@@ -22,98 +22,126 @@ struct ResultView: View {
     }
     
     var body: some View {
-        VStack(spacing: 20) {
+        // NEW: ZStack for gradient
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.blue.opacity(0.7),
+                    Color.cyan.opacity(0.7)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .edgesIgnoringSafeArea(.all)
             
-            // Top Section (Win/Loss)
-            VStack(spacing: 15) {
-                if didWin {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 80))
-                        .foregroundColor(.green)
-                    Text("They Guessed It!")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    
-                    // 3. NEW: Show the word
-                    Text("The secret was: \(secretWord)")
-                        .font(.title3)
-                    
-                    Text(questionLog.count == 1 ? "It only took 1 question!" : "It only took \(questionLog.count) questions!")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                } else {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 80))
-                        .foregroundColor(.red)
-                    Text("They Failed!")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    
-                    // 3. NEW: Show the word
-                    Text("The secret was: \(secretWord)")
-                        .font(.title3)
-                    
-                    Text("They couldn't guess the \(category.dropLast(1)) in 20 questions!")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-            }
-            .padding(.vertical)
-            
-            Text("Game Log")
-                .font(.title2)
-                .fontWeight(.bold)
-            
-            List(questionLog) { log in
-                HStack {
-                    Image(systemName: log.answer == .yes ? "checkmark.circle" : "xmark.circle")
-                        .foregroundColor(log.answer == .yes ? .green : .red)
-                        .font(.headline)
-                    
-                    VStack(alignment: .leading) {
-                        Text(log.questionText)
-                            .font(.body)
-                        Text("Answer: \(log.answer.rawValue.capitalized)")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+            VStack(spacing: 20) {
+                
+                // Top Section (Win/Loss)
+                VStack(spacing: 15) {
+                    if didWin {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 80))
+                            .foregroundColor(.green)
+                            .padding(10)
+                            .background(Color.white.opacity(0.2))
+                            .clipShape(Circle())
+                        
+                        Text("They Guessed It!")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                        
+                        // 3. NEW: Show the word
+                        Text("The secret was: \(secretWord)")
+                            .font(.title3)
+                            .foregroundColor(.white)
+                        
+                        Text(questionLog.count == 1 ? "It only took 1 question!" : "It only took \(questionLog.count) questions!")
+                            .font(.headline)
+                            .foregroundColor(.white.opacity(0.8))
+                        
+                    } else {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 80))
+                            .foregroundColor(.red)
+                            .padding(10)
+                            .background(Color.white.opacity(0.2))
+                            .clipShape(Circle())
+                        
+                        Text("They Didn't Guess!")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                        
+                        // 3. NEW: Show the word
+                        Text("The secret was: \(secretWord)")
+                            .font(.title3)
+                            .foregroundColor(.white)
+                        
+                        Text("You stumped them!")
+                            .font(.headline)
+                            .foregroundColor(.white.opacity(0.8))
                     }
-                    Spacer()
-                }
-                .padding(.vertical, 4)
-            }
-            .listStyle(InsetGroupedListStyle())
-            
-            // Bottom Buttons
-            VStack(spacing: 10) {
-                Button(action: {
-                    // MODIFIED: We now pop 4 views to get back to CategorySelection
-                    // Result, Game, Confirmation, SecretInput
-                    navPath.removeLast(4)
-                }) {
-                    Text("Play Again")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .font(.headline)
-                        .cornerRadius(12)
                 }
                 
-                Button(action: {
-                    navPath.removeLast(navPath.count)
-                }) {
-                    Text("Main Menu")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.secondary.opacity(0.2))
-                        .foregroundColor(.primary)
-                        .font(.headline)
-                        .cornerRadius(12)
+                // Question Log
+                VStack(alignment: .leading) {
+                    Text("Question Log")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal)
+                    
+                    List(questionLog) { log in
+                        HStack {
+                            Text(log.answer == .yes ? "✅" : "❌")
+                            Text(log.questionText)
+                        }
+                    }
+                    .scrollContentBackground(.hidden) // Make List bg transparent
+                    .cornerRadius(12)
                 }
+                
+                // Bottom Buttons
+                VStack(spacing: 15) {
+                    // MODIFIED: "Play Again" button (Green Capsule)
+                    Button(action: {
+                        // Pop 4 views: Result, Game, Confirm, SecretInput
+                        navPath.removeLast(4)
+                    }) {
+                        Text("Play Again")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(
+                                Capsule()
+                                    .fill(Color.green.gradient)
+                            )
+                            .foregroundColor(.white)
+                    }
+                    
+                    // MODIFIED: "Main Menu" button (Stroked Capsule)
+                    Button(action: {
+                        navPath.removeLast(navPath.count)
+                    }) {
+                        Text("Main Menu")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(
+                                Capsule()
+                                    .stroke(Color.white.opacity(0.7), lineWidth: 2)
+                                    .fill(Color.white.opacity(0.2))
+                            )
+                            .foregroundColor(.white)
+                    }
+                }
+                .padding(.horizontal, 30)
             }
+            .padding()
         }
-        .padding()
         .navigationBarBackButtonHidden(true)
     }
 }
