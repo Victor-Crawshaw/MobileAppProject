@@ -5,72 +5,86 @@ struct TwentyQuestionsStartView: View {
     
     @Binding var navPath: NavigationPath
     @State private var showingHowToPlay = false
-    
-    // 1. ADD THIS: Needed to go back
-    @Environment(\.dismiss) var dismiss
 
     var body: some View {
-        VStack(spacing: 25) {
-            Text("🤔")
-                .font(.system(size: 80))
+        ZStack {
+            // NEW: Updated background gradient (blue/teal)
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.blue.opacity(0.7),
+                    Color.cyan.opacity(0.7)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .edgesIgnoringSafeArea(.all)
             
-            Text("20 Questions")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-            
-            Spacer()
-
-            // Main "Start Game" button
-            Button(action: {
-                // This now navigates to Category Selection
-                navPath.append(GameNavigation.twentyQuestionsCategory)
-            }) {
-                Text("Start Game")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
+            VStack(spacing: 30) {
+                Spacer()
+                
+                // NEW: Number-based logo instead of emoji
+                Text("🤔")
+                    .font(.system(size: 120, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
-                    .cornerRadius(12)
-            }
-            
-            // "How to Play" button
-            Button(action: {
-                showingHowToPlay = true
-            }) {
-                Text("How to Play")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.secondary.opacity(0.2))
-                    .foregroundColor(.primary)
-                    .cornerRadius(12)
-            }
-            
-            Spacer()
-        }
-        .padding()
-        .sheet(isPresented: $showingHowToPlay) {
-            HowToPlayView()
-        }
-        // 2. ADD THIS: This adds the custom "Back" button
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
+                    .shadow(color: .black.opacity(0.3), radius: 5, y: 5)
+                    .padding(.bottom, 10)
+                
+                Text("20 Questions")
+                    .font(.custom("ChalkboardSE-Bold", size: 48))
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.4), radius: 5, y: 5)
+                
+                Spacer()
+                
+                // MODIFIED: "Start Game" button is now green
                 Button(action: {
-                    dismiss() // This goes back
+                    navPath.append(GameNavigation.twentyQuestionsCategory)
                 }) {
-                    Image(systemName: "chevron.left")
-                    Text("Back")
+                    Text("Start Game")
+                        .font(.title2)
+                        .fontWeight(.heavy)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(
+                            Capsule()
+                                // Use a green gradient
+                                .fill(Color.green.gradient)
+                                .shadow(color: .black.opacity(0.3), radius: 5, y: 5)
+                        )
+                        // Text color changed to white for contrast
+                        .foregroundColor(.white)
                 }
+                .padding(.horizontal, 30)
+                
+                // "How to Play" button (unchanged, still looks good)
+                Button(action: {
+                    showingHowToPlay = true
+                }) {
+                    Text("How to Play")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            Capsule()
+                                .stroke(Color.white.opacity(0.7), lineWidth: 2)
+                                .fill(Color.white.opacity(0.2))
+                        )
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal, 30)
+                
+                Spacer()
             }
+            .padding(.vertical, 40)
         }
-        // 3. CHANGE THIS: Add a title to force the nav bar to appear
+        .sheet(isPresented: $showingHowToPlay) {
+            HowToPlayView() // Make sure you have this view defined
+        }
         .navigationTitle("20 Questions")
         .navigationBarTitleDisplayMode(.inline)
-        
-        // 4. CHANGE THIS: This hides the *default* back button, letting us use our custom one
-        .navigationBarBackButtonHidden(true)
+        .navigationBarBackButtonHidden(false)
     }
 }
 

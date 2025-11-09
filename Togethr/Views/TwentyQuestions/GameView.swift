@@ -6,8 +6,6 @@ struct GameView: View {
     
     @Binding var navPath: NavigationPath
     let category: String
-    
-    // 1. ADD: It now knows the secret word
     let secretWord: String
     
     @StateObject private var speechRecognizer = SpeechRecognizer()
@@ -17,140 +15,156 @@ struct GameView: View {
     @State private var showingQuestionLog = false
     
     var body: some View {
-        VStack(spacing: 20) {
-            Spacer()
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.blue.opacity(0.7),
+                    Color.cyan.opacity(0.7)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .edgesIgnoringSafeArea(.all)
             
-            Text("Question")
-                .font(.title)
-                .foregroundColor(.secondary)
-            
-            Text("\(questionLog.count + 1)")
-                .font(.system(size: 80, weight: .bold, design: .rounded))
-            
-            // This is the VStack with the live-transcription update
-            VStack {
-                if speechRecognizer.isRecording {
-                    Text(speechRecognizer.transcript.isEmpty ? "Listening..." : speechRecognizer.transcript)
-                        .font(.headline)
-                        .fontWeight(.medium)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(.regularMaterial)
-                        .cornerRadius(12)
-                        .frame(minHeight: 60)
-                } else {
-                    if currentQuestionText.isEmpty {
-                        Text("Tap the mic to ask a question.")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                            .frame(minHeight: 60)
+            VStack(spacing: 20) {
+                Spacer()
+                
+                Text("Question")
+                    .font(.title)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white.opacity(0.8))
+                
+                Text("\(questionLog.count + 1)")
+                    .font(.system(size: 100, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.3), radius: 5, y: 5)
+                
+                VStack(spacing: 15) {
+                    
+                    VStack {
+                        if speechRecognizer.isRecording {
+                            Text(speechRecognizer.transcript.isEmpty ? "Listening..." : speechRecognizer.transcript)
+                                .font(.headline)
+                                .fontWeight(.medium)
+                                .foregroundColor(.primary)
+                        } else {
+                            if currentQuestionText.isEmpty {
+                                Text("Tap the mic to ask a question.")
+                                    .font(.headline)
+                                    .foregroundColor(.primary.opacity(0.8))
+                            } else {
+                                Text(currentQuestionText)
+                                    .font(.headline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.primary)
+                            }
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: 60)
+                    .background(.regularMaterial)
+                    .cornerRadius(20)
+                    
+                    if speechRecognizer.isRecording {
+                        Button(action: {
+                            speechRecognizer.stopTranscribing()
+                        }) {
+                            Label("Stop Recording", systemImage: "stop.fill")
+                                .font(.headline)
+                                .fontWeight(.heavy)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 18)
+                                .background(Capsule().fill(Color.red.gradient))
+                                .foregroundColor(.white)
+                        }
                     } else {
-                        Text(currentQuestionText)
-                            .font(.headline)
-                            .fontWeight(.medium)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(.regularMaterial)
-                            .cornerRadius(12)
-                            .frame(minHeight: 60)
+                        Button(action: {
+                            speechRecognizer.startTranscribing()
+                        }) {
+                            Label("Record Question", systemImage: "mic.fill")
+                                .font(.headline)
+                                .fontWeight(.heavy)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 18)
+                                // MODIFIED: Record button is now blue
+                                .background(Capsule().fill(Color.blue.gradient))
+                                .foregroundColor(.white)
+                        }
+                        .disabled(questionAwaitingAnswer)
                     }
                 }
+                .padding(.horizontal)
                 
-                // Record / Stop button
-                if speechRecognizer.isRecording {
+                HStack(spacing: 20) {
                     Button(action: {
-                        speechRecognizer.stopTranscribing()
+                        logAnswer(answer: .yes)
                     }) {
-                        Label("Stop Recording", systemImage: "stop.fill")
+                        Text("Yes")
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
                             .font(.headline)
-                            .padding()
-                            .background(Color.red)
+                            .fontWeight(.heavy)
+                            .background(Capsule().fill(Color.green.gradient))
                             .foregroundColor(.white)
-                            .cornerRadius(12)
                     }
-                } else {
+                    .disabled(!questionAwaitingAnswer)
+                    
                     Button(action: {
-                        speechRecognizer.startTranscribing()
+                        logAnswer(answer: .no)
                     }) {
-                        Label("Record Question", systemImage: "mic.fill")
+                        Text("No")
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
                             .font(.headline)
-                            .padding()
-                            .background(Color.blue)
+                            .fontWeight(.heavy)
+                            .background(Capsule().fill(Color.red.gradient))
                             .foregroundColor(.white)
-                            .cornerRadius(12)
                     }
-                    .disabled(questionAwaitingAnswer)
+                    .disabled(!questionAwaitingAnswer)
+                }
+                .padding(.horizontal)
+                
+                Spacer()
+                
+                if !questionLog.isEmpty {
+                    Button(action: {
+                        showingQuestionLog = true
+                    }) {
+                        Text("View Question Log (\(questionLog.count))")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+                    .padding(.bottom, 10)
+                }
+                
+                Button(action: {
+                    navPath.append(GameNavigation.twentyQuestionsResult(
+                        didWin: true,
+                        questionLog: questionLog,
+                        category: category,
+                        secretWord: secretWord
+                    ))
+                }) {
+                    Text("They Guessed It!")
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .background( // Use secondary button style
+                            Capsule()
+                                // MODIFIED: Guessed It button is now gold
+                                .stroke(Color.yellow.opacity(0.7), lineWidth: 2)
+                                .fill(Color.yellow.opacity(0.2))
+                        )
+                        // Text color changed to yellow for contrast
+                        .foregroundColor(.yellow)
                 }
             }
             .padding()
-            
-            // Yes/No answer buttons
-            HStack(spacing: 20) {
-                Button(action: {
-                    logAnswer(answer: .yes)
-                }) {
-                    Text("Yes")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.green)
-                        .foregroundColor(.white)
-                        .font(.headline)
-                        .cornerRadius(12)
-                }
-                .disabled(!questionAwaitingAnswer)
-                
-                Button(action: {
-                    logAnswer(answer: .no)
-                }) {
-                    Text("No")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.red)
-                        .foregroundColor(.white)
-                        .font(.headline)
-                        .cornerRadius(12)
-                }
-                .disabled(!questionAwaitingAnswer)
-            }
-            
-            Spacer()
-            
-            if !questionLog.isEmpty {
-                Button(action: {
-                    showingQuestionLog = true
-                }) {
-                    Text("View Question Log (\(questionLog.count))")
-                        .font(.headline)
-                        .foregroundColor(.blue)
-                }
-                .padding(.bottom, 10)
-            }
-            
-            // "Guessed It" button
-            Button(action: {
-                // 2. MODIFIED: Pass the secretWord to the result
-                navPath.append(GameNavigation.twentyQuestionsResult(
-                    didWin: true,
-                    questionLog: questionLog,
-                    category: category,
-                    secretWord: secretWord // Pass it here
-                ))
-            }) {
-                Text("They Guessed It!")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue.opacity(0.1))
-                    .foregroundColor(.blue)
-                    .font(.headline)
-                    .cornerRadius(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.blue, lineWidth: 2)
-                    )
-            }
         }
-        .padding()
-        .navigationBarBackButtonHidden(true)
+        .navigationBarBackButtonHidden(false)
         .onAppear {
             speechRecognizer.requestAuthorization()
         }
@@ -161,11 +175,10 @@ struct GameView: View {
             }
         }
         .sheet(isPresented: $showingQuestionLog) {
-            QuestionLogSheetView(questionLog: questionLog)
+            StyledQuestionLogSheetView(questionLog: questionLog)
         }
     }
     
-    // 3. MODIFIED: The logAnswer function must also pass the secretWord
     func logAnswer(answer: Answer) {
         let newLogEntry = RecordedQuestion(questionText: currentQuestionText, answer: answer)
         questionLog.append(newLogEntry)
@@ -175,25 +188,23 @@ struct GameView: View {
         questionAwaitingAnswer = false
         
         if questionLog.count >= 20 {
-            // Used up 20 questions
             navPath.append(GameNavigation.twentyQuestionsResult(
                 didWin: false,
                 questionLog: questionLog,
                 category: category,
-                secretWord: secretWord // Pass it here too
+                secretWord: secretWord
             ))
         }
     }
 }
 
-// (The QuestionLogSheetView struct is unchanged)
-struct QuestionLogSheetView: View {
+// StyledQuestionLogSheetView is UNCHANGED
+struct StyledQuestionLogSheetView: View {
     @Environment(\.dismiss) var dismiss
     let questionLog: [RecordedQuestion]
     
     var body: some View {
         VStack(spacing: 20) {
-            // Title
             HStack {
                 Spacer()
                 Text("Question Log")
@@ -210,7 +221,6 @@ struct QuestionLogSheetView: View {
             }
             .padding(.top)
             
-            // Log List
             if questionLog.isEmpty {
                 Spacer()
                 Text("No questions have been asked yet.")
@@ -238,17 +248,20 @@ struct QuestionLogSheetView: View {
                 .listStyle(InsetGroupedListStyle())
             }
             
-            // Close Button
             Button(action: {
                 dismiss()
             }) {
                 Text("Close")
                     .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
+                    .padding(.vertical, 14)
                     .font(.headline)
-                    .cornerRadius(12)
+                    .fontWeight(.semibold)
+                    .background(
+                        Capsule()
+                            .stroke(Color.gray.opacity(0.5), lineWidth: 2)
+                            .fill(Color.gray.opacity(0.1))
+                    )
+                    .foregroundColor(.blue)
             }
         }
         .padding()
@@ -259,10 +272,12 @@ struct QuestionLogSheetView: View {
 
 struct GameView_Previews: PreviewProvider {
     static var previews: some View {
-        GameView(
-            navPath: .constant(NavigationPath()),
-            category: "Animals",
-            secretWord: "Sloth" // Add mock data
-        )
+        NavigationStack {
+            GameView(
+                navPath: .constant(NavigationPath()),
+                category: "Animals",
+                secretWord: "Sloth"
+            )
+        }
     }
 }

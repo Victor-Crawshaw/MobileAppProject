@@ -5,50 +5,78 @@ struct ConfirmationView: View {
     
     @Binding var navPath: NavigationPath
     let category: String
-    
-    // 1. ADD: It now needs to know the secret word
     let secretWord: String
     
     var body: some View {
-        VStack(spacing: 20) {
-            Spacer()
+        ZStack {
+            // 1. Consistent Background
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.blue.opacity(0.7),
+                    Color.cyan.opacity(0.7)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .edgesIgnoringSafeArea(.all)
             
-            // MODIFIED: Updated text
-            Text("Knower, pass the phone to the first Guesser.")
-                .font(.title)
-                .multilineTextAlignment(.center)
-                .foregroundColor(.secondary)
-            
-            Spacer()
-            
-            // 2. MODIFIED: The button action now passes the secretWord
-            Button(action: {
-                navPath.append(GameNavigation.twentyQuestionsGame(
-                    category: category,
-                    secretWord: secretWord
-                ))
-            }) {
-                // MODIFIED: Updated button text
-                Text("I'm Ready to Guess")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
+            VStack(spacing: 30) {
+                Spacer()
+                
+                // 2. Fun "pass the phone" emoji
+                Text("📲")
+                    .font(.system(size: 100))
+
+                // 3. Styled instruction text
+                Text("Knower, pass the phone to the first Guesser.")
+                    .font(.custom("ChalkboardSE-Bold", size: 36))
+                    .fontWeight(.bold)
+                    .multilineTextAlignment(.center)
                     .foregroundColor(.white)
-                    .font(.headline)
-                    .cornerRadius(12)
+                    .shadow(color: .black.opacity(0.4), radius: 5, y: 5)
+                    .padding(.horizontal, 20)
+                
+                Spacer()
+                
+                // 4. "I'm Ready" button styled like "Start Game"
+                Button(action: {
+                    navPath.append(GameNavigation.twentyQuestionsGame(
+                        category: category,
+                        secretWord: secretWord
+                    ))
+                }) {
+                    Text("I'm Ready to Guess")
+                        .font(.title2)
+                        .fontWeight(.heavy)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(
+                            Capsule()
+                                .fill(Color.green.gradient) // Green "Go" button
+                                .shadow(color: .black.opacity(0.3), radius: 5, y: 5)
+                        )
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal, 30) // Match horizontal padding
+                
+                Spacer()
             }
+            .padding()
         }
-        .padding()
-        .navigationBarBackButtonHidden(true)
+        .navigationBarBackButtonHidden(false)
+        .navigationTitle("Pass the Phone") // Adds context
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
 struct ConfirmationView_Previews: PreviewProvider {
     static var previews: some View {
-        ConfirmationView(
-            navPath: .constant(NavigationPath()),
-            category: "Animals",
-            secretWord: "Lion" // Add mock data for preview
-        )
+        NavigationStack { // Wrap in NavigationStack to see title
+            ConfirmationView(
+                navPath: .constant(NavigationPath()),
+                category: "Animals",
+                secretWord: "Lion"
+            )
+        }
     }
 }
