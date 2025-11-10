@@ -6,7 +6,7 @@ enum GameFilter: String, CaseIterable, Identifiable {
     case all = "All"
     case inPerson = "In-Person"
     case online = "Online"
-    case passAndPlay = "Pass-and-Play"
+    case passAndPlay = "Pass & Play"
     
     var id: String { self.rawValue }
 }
@@ -65,7 +65,9 @@ struct MainMenuView: View {
                         // NEW: Filter Picker
                         Picker("Filter Games", selection: $selectedFilter) {
                             ForEach(GameFilter.allCases) { filter in
-                                Text(filter.rawValue).tag(filter)
+                                Text(filter.rawValue)
+                                    .font(.caption)
+                                    .tag(filter)
                             }
                         }
                         .pickerStyle(.segmented)
