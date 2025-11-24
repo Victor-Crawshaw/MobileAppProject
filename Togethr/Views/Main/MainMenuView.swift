@@ -1,7 +1,6 @@
 // Views/Main/MainMenuView.swift
 import SwiftUI
 
-// NEW: Enum to manage the filter state, including an "All" option
 enum GameFilter: String, CaseIterable, Identifiable {
     case all = "All"
     case inPerson = "In-Person"
@@ -14,8 +13,6 @@ enum GameFilter: String, CaseIterable, Identifiable {
 struct MainMenuView: View {
     
     @State private var navPath = NavigationPath()
-    
-    // NEW: State to track the selected filter
     @State private var selectedFilter: GameFilter = .all
     
     private let allGames: [Game] = Game.mockData
@@ -24,7 +21,6 @@ struct MainMenuView: View {
         GridItem(.adaptive(minimum: 150))
     ]
     
-    // NEW: Computed property to filter games based on the selected state
     private var filteredGames: [Game] {
         switch selectedFilter {
         case .all:
@@ -41,7 +37,6 @@ struct MainMenuView: View {
     var body: some View {
         NavigationStack(path: $navPath) {
             ZStack {
-                // MODIFIED: Made the gradient more vibrant and "fun"
                 LinearGradient(
                     gradient: Gradient(colors: [
                         Color.teal.opacity(0.6),
@@ -53,16 +48,14 @@ struct MainMenuView: View {
                 .edgesIgnoringSafeArea(.all)
                 
                 ScrollView {
-                    VStack(spacing: 25) { // Increased spacing
+                    VStack(spacing: 25) {
                         
-                        // MODIFIED: Styled the title to pop more
                         Text("Togethr")
                             .font(.system(size: 48, weight: .bold, design: .rounded))
-                            .foregroundColor(.white) // Changed color
-                            .shadow(color: .black.opacity(0.2), radius: 5, y: 3) // Added shadow
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.2), radius: 5, y: 3)
                             .padding(.top, 40)
                         
-                        // NEW: Filter Picker
                         Picker("Filter Games", selection: $selectedFilter) {
                             ForEach(GameFilter.allCases) { filter in
                                 Text(filter.rawValue)
@@ -73,25 +66,21 @@ struct MainMenuView: View {
                         .pickerStyle(.segmented)
                         .padding(.horizontal, 20)
 
-                        // MODIFIED: Grid now uses 'filteredGames' and animates
                         LazyVGrid(columns: columns, spacing: 20) {
-                            ForEach(filteredGames) { game in // Use filteredGames
+                            ForEach(filteredGames) { game in
                                 NavigationLink(value: navigationValue(for: game)) {
                                     GameCard(game: game)
                                 }
                                 .buttonStyle(PlainButtonStyle())
                             }
                         }
-                        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: selectedFilter) // Animate changes
+                        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: selectedFilter)
                         .padding()
                     }
                 }
             }
             .navigationBarHidden(true)
             
-            // ==========================================================
-            // This navigationDestination section is UNCHANGED from yours
-            // ==========================================================
             .navigationDestination(for: GameNavigation.self) { destination in
                 switch destination {
                 
@@ -131,13 +120,27 @@ struct MainMenuView: View {
                         secretWord: secretWord,
                         reason: reason
                     )
-
+                
+                // --- Hangman Flow ---
+                case .hangmanStart:
+                    HangmanStartView(navPath: $navPath)
+                
+                case .hangmanWordSetup:
+                    HangmanWordSetupView(navPath: $navPath)
+                
+                case .hangmanConfirm(let secretWord):
+                    HangmanConfirmationView(navPath: $navPath, secretWord: secretWord)
+                
+                case .hangmanGame(let secretWord):
+                    HangmanGameView(navPath: $navPath, secretWord: secretWord)
+                
+                case .hangmanResult(let didWin, let secretWord, let incorrectGuesses):
+                    HangmanResultView(navPath: $navPath, didWin: didWin, secretWord: secretWord, incorrectGuesses: incorrectGuesses)
                 }
             }
         }
     }
     
-    // This ViewBuilder function is UNCHANGED
     @ViewBuilder
     private func GameCard(game: Game) -> some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -164,22 +167,20 @@ struct MainMenuView: View {
         .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
     }
     
-    // This helper function is UNCHANGED
     private func navigationValue(for game: Game) -> GameNavigation {
         switch game.name {
         case "20 Questions":
             return .twentyQuestionsStart
         case "Contact":
             return .contactStart
+        case "Hangman":
+            return .hangmanStart
         default:
-            // Fallback for new games like Charades, etc.
-            // You can expand this later.
             return .twentyQuestionsStart
         }
     }
 }
 
-// UNCHANGED PREVIEW
 struct MainMenuView_Previews: PreviewProvider {
     static var previews: some View {
         MainMenuView()

@@ -6,20 +6,23 @@ import Foundation
 enum GameNavigation: Hashable {
     case twentyQuestionsStart
     case contactStart
+    case hangmanStart
     
-    // --- 20 Questions Flow (MODIFIED) ---
+    // --- 20 Questions Flow ---
     case twentyQuestionsCategory
-    
-    // NEW case for the input screen
     case twentyQuestionsSecretInput(category: String)
-    
-    // MODIFIED to include secretWord
     case twentyQuestionsConfirm(category: String, secretWord: String)
     case twentyQuestionsGame(category: String, secretWord: String)
     case twentyQuestionsResult(didWin: Bool, questionLog: [RecordedQuestion], category: String, secretWord: String)
     
-    // --- Contact Flow (Unchanged from your version) ---
+    // --- Contact Flow ---
     case contactWordSetup
     case contactGame(secretWord: String)
     case contactResult(didGuessersWin: Bool, secretWord: String, reason: String)
+    
+    // --- Hangman Flow ---
+    case hangmanWordSetup
+    case hangmanConfirm(secretWord: String)
+    case hangmanGame(secretWord: String)
+    case hangmanResult(didWin: Bool, secretWord: String, incorrectGuesses: Int)
 }
