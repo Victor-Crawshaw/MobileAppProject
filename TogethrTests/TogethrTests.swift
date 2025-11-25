@@ -1,7 +1,7 @@
 // TogethrAppTests/TogethrAppTests.swift
 import XCTest
 import Foundation
-import SwiftUI // <-- ADD THIS LINE
+import SwiftUI 
 
 // Import your app module to make its code available for testing
 @testable import Togethr
