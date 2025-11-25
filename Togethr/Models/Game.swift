@@ -19,7 +19,11 @@ extension Game {
         Game(name: "Contact",
              description: "Guess the secret word, one letter at a time.",
              mode: .inPerson,
-             emoji: "🔤")
+             emoji: "🔤"),
+        
+        Game(name: "Hangman",
+             description: "Guess the word letter by letter before running out of tries.",
+             mode: .passAndPlay,
+             emoji: "🎯")
     ]
 }
-
