@@ -1,34 +1,106 @@
-// Views/TwentyQuestions/TwentyQuestionsSecretInputView.swift
 import SwiftUI
 
 struct TwentyQuestionsSecretInputView: View {
     
     @Binding var navPath: NavigationPath
     let category: String
+    @State private var textInput: String = ""
+    @FocusState private var isFocused: Bool
     
     var body: some View {
-        SecretWordInputView(
-            title: String(category.dropLast(1)), // "Animals" -> "Animal"
-            subtitle: nil,
-            placeholder: "e.g., \"Dolphin\" or \"My Left Shoe\"",
-            buttonText: "Confirm Secret",
-            validation: { _ in nil }, // No validation needed for Twenty Questions
-            onConfirm: { secretWord in
-                navPath.append(GameNavigation.twentyQuestionsConfirm(
-                    category: category,
-                    secretWord: secretWord
-                ))
+        ZStack {
+            // Background
+            Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
+            
+            VStack(spacing: 30) {
+                
+                VStack(spacing: 10) {
+                    Text("SECRET TARGET")
+                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                        .foregroundColor(.purple)
+                        .tracking(2)
+                    
+                    Text("Enter The Word")
+                        .font(.system(size: 32, weight: .black, design: .rounded))
+                        .foregroundColor(.white)
+                }
+                .padding(.top, 40)
+                
+                // Custom Input Field
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(String(category.dropLast(1))) // "Animals" -> "Animal"
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                        .padding(.leading, 5)
+                    
+                    TextField("", text: $textInput)
+                        .placeholder(when: textInput.isEmpty) {
+                            Text("e.g. Dolphin").foregroundColor(.gray.opacity(0.5))
+                        }
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundColor(.teal)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(Color.black.opacity(0.3))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .stroke(isFocused ? Color.teal : Color.white.opacity(0.1), lineWidth: 2)
+                                )
+                        )
+                        .focused($isFocused)
+                        .submitLabel(.done)
+                }
+                .padding(.horizontal, 30)
+                
+                Spacer()
+                
+                // Confirm Button
+                Button(action: {
+                    if !textInput.isEmpty {
+                        navPath.append(GameNavigation.twentyQuestionsConfirm(
+                            category: category,
+                            secretWord: textInput
+                        ))
+                    }
+                }) {
+                    HStack {
+                        Text("LOCK IN SECRET")
+                        Image(systemName: "lock.fill")
+                    }
+                    .font(.system(size: 18, weight: .heavy, design: .rounded))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 18)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(textInput.isEmpty ? Color.gray.opacity(0.3) : Color.purple)
+                    )
+                    .foregroundColor(textInput.isEmpty ? .white.opacity(0.3) : .white)
+                    .shadow(color: textInput.isEmpty ? .clear : .purple.opacity(0.5), radius: 10, y: 5)
+                }
+                .disabled(textInput.isEmpty)
+                .padding(.horizontal, 40)
+                .padding(.bottom, 20) // Push up from keyboard
             }
-        )
-        .navigationTitle("Enter Secret")
-        .navigationBarTitleDisplayMode(.inline)
+        }
+        .onAppear {
+            isFocused = true
+        }
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
     }
 }
 
-struct TwentyQuestionsSecretInputView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationStack {
-            TwentyQuestionsSecretInputView(navPath: .constant(NavigationPath()), category: "Animals")
+// Helper extension for placeholder color
+extension View {
+    func placeholder<Content: View>(
+        when shouldShow: Bool,
+        alignment: Alignment = .leading,
+        @ViewBuilder placeholder: () -> Content) -> some View {
+
+        ZStack(alignment: alignment) {
+            placeholder().opacity(shouldShow ? 1 : 0)
+            self
         }
     }
 }

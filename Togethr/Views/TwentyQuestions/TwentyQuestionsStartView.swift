@@ -1,4 +1,3 @@
-// Views/TwentyQuestions/TwentyQuestionsStartView.swift
 import SwiftUI
 
 struct TwentyQuestionsStartView: View {
@@ -8,83 +7,105 @@ struct TwentyQuestionsStartView: View {
 
     var body: some View {
         ZStack {
-            // NEW: Updated background gradient (blue/teal)
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.blue.opacity(0.7),
-                    Color.cyan.opacity(0.7)
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .edgesIgnoringSafeArea(.all)
+            // MARK: 1. Gamey Background
+            Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
+            
+            // Ambient Orbs
+            GeometryReader { geo in
+                Circle().fill(Color.teal.opacity(0.2)).frame(width: 300).blur(radius: 60).offset(x: -100, y: -100)
+                Circle().fill(Color.purple.opacity(0.2)).frame(width: 300).blur(radius: 60).offset(x: geo.size.width - 150, y: geo.size.height / 2)
+            }
             
             VStack(spacing: 30) {
                 Spacer()
                 
-                // NEW: Number-based logo instead of emoji
-                Text("🤔")
-                    .font(.system(size: 120, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                    .shadow(color: .black.opacity(0.3), radius: 5, y: 5)
-                    .padding(.bottom, 10)
-                
-                Text("20 Questions")
-                    .font(.custom("ChalkboardSE-Bold", size: 48))
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .shadow(color: .black.opacity(0.4), radius: 5, y: 5)
+                // MARK: 2. Hero Logo
+                ZStack {
+                    Circle()
+                        .fill(LinearGradient(colors: [.purple.opacity(0.3), .clear], startPoint: .top, endPoint: .bottom))
+                        .frame(width: 220, height: 220)
+                        .blur(radius: 10)
+                    
+                    Text("20")
+                        .font(.system(size: 140, weight: .black, design: .rounded))
+                        .foregroundStyle(
+                            LinearGradient(colors: [.yellow, .orange], startPoint: .top, endPoint: .bottom)
+                        )
+                        .shadow(color: .orange.opacity(0.6), radius: 15, x: 0, y: 0)
+                        .offset(y: -10)
+                    
+                    Text("QUESTIONS")
+                        .font(.system(size: 32, weight: .heavy, design: .monospaced))
+                        .tracking(4)
+                        .foregroundColor(.white)
+                        .shadow(color: .purple, radius: 10)
+                        .offset(y: 80)
+                }
+                .padding(.bottom, 40)
                 
                 Spacer()
                 
-                // MODIFIED: "Start Game" button is now green
-                Button(action: {
-                    navPath.append(GameNavigation.twentyQuestionsCategory)
-                }) {
-                    Text("Start Game")
-                        .font(.title2)
-                        .fontWeight(.heavy)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 18)
-                        .background(
-                            Capsule()
-                                // Use a green gradient
-                                .fill(Color.green.gradient)
-                                .shadow(color: .black.opacity(0.3), radius: 5, y: 5)
-                        )
-                        // Text color changed to white for contrast
-                        .foregroundColor(.white)
+                // MARK: 3. Action Buttons
+                VStack(spacing: 20) {
+                    Button(action: {
+                        navPath.append(GameNavigation.twentyQuestionsCategory)
+                    }) {
+                        Text("START GAME")
+                            .font(.system(size: 20, weight: .heavy, design: .rounded))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(LinearGradient(colors: [.teal, .blue], startPoint: .leading, endPoint: .trailing))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(.white.opacity(0.3), lineWidth: 1)
+                            )
+                            .foregroundColor(.white)
+                            .shadow(color: .teal.opacity(0.5), radius: 10, x: 0, y: 5)
+                    }
+                    .buttonStyle(BouncyScaleButtonStyle())
+                    
+                    Button(action: {
+                        showingHowToPlay = true
+                    }) {
+                        Text("HOW TO PLAY")
+                            .font(.system(size: 16, weight: .bold, design: .monospaced))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color.white.opacity(0.05))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 2)
+                            )
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+                    .buttonStyle(BouncyScaleButtonStyle())
                 }
-                .padding(.horizontal, 30)
-                
-                // "How to Play" button (unchanged, still looks good)
-                Button(action: {
-                    showingHowToPlay = true
-                }) {
-                    Text("How to Play")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(
-                            Capsule()
-                                .stroke(Color.white.opacity(0.7), lineWidth: 2)
-                                .fill(Color.white.opacity(0.2))
-                        )
-                        .foregroundColor(.white)
-                }
-                .padding(.horizontal, 30)
-                
-                Spacer()
+                .padding(.horizontal, 40)
+                .padding(.bottom, 50)
             }
-            .padding(.vertical, 40)
         }
         .sheet(isPresented: $showingHowToPlay) {
-            HowToPlayView() // Make sure you have this view defined
+            HowToPlayView()
+                .presentationDetents([.medium, .large])
+                .preferredColorScheme(.dark)
         }
-        .navigationTitle("20 Questions")
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(false)
+        .navigationBarHidden(true)
+    }
+}
+
+// Helper Style
+struct BouncyScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
+            .opacity(configuration.isPressed ? 0.8 : 1.0)
     }
 }
 
