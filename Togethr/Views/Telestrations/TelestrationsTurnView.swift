@@ -254,12 +254,23 @@ struct TelestrationsTurnView: View {
             // Safeguard for rect
             var captureRect = canvasRect
             if captureRect.width <= 0 || captureRect.height <= 0 {
-                 captureRect = drawing.bounds.insetBy(dx: -20, dy: -20)
+                captureRect = drawing.bounds.insetBy(dx: -20, dy: -20)
             }
             if captureRect.width <= 0 { captureRect = CGRect(x: 0, y: 0, width: 300, height: 350) }
 
-            // Generate Image
-            let image = drawing.image(from: captureRect, scale: 1.0)
+            // --- FIX STARTS HERE ---
+            
+            // We define a variable to hold the image
+            var image: UIImage = UIImage()
+            
+            // We force the code block to execute assuming the device is in LIGHT mode.
+            // This ensures standard Black ink renders as Black (RGB 0,0,0)
+            // instead of inverting to White for Dark Mode.
+            UITraitCollection(userInterfaceStyle: .light).performAsCurrent {
+                image = drawing.image(from: captureRect, scale: 1.0)
+            }
+            
+            // --- FIX ENDS HERE ---
             
             if let pngData = image.pngData() {
                 nextHistory.append(.drawing(pngData))
@@ -272,9 +283,9 @@ struct TelestrationsTurnView: View {
         nextContext.history = nextHistory
         
         if nextContext.isGameOver {
-             navPath.append(GameNavigation.telestrationsResult(context: nextContext))
+            navPath.append(GameNavigation.telestrationsResult(context: nextContext))
         } else {
-             navPath.append(GameNavigation.telestrationsPass(context: nextContext))
+            navPath.append(GameNavigation.telestrationsPass(context: nextContext))
         }
     }
 }
@@ -309,10 +320,6 @@ struct DrawingCanvas: UIViewRepresentable {
             // Bitmap eraser allows erasing parts of strokes
             uiView.tool = PKEraserTool(.bitmap, width: CGFloat(inkWidth))
         } else {
-            // 3. THE FIX FOR INVISIBLE BLACK INK
-            // We strip the "Adaptive" nature of the color.
-            // "System Black" changes based on Dark Mode.
-            // "Resolved Black" is always RGB(0,0,0).
             let dynamicColor = UIColor(inkColor)
             let fixedColor = dynamicColor.resolvedColor(with: UITraitCollection(userInterfaceStyle: .light))
             
