@@ -1,3 +1,4 @@
+// Views/Main/MainMenuView.swift
 import SwiftUI
 
 // --- Enum (Unchanged) ---
@@ -74,7 +75,7 @@ struct MainMenuView: View {
                         VStack(spacing: 5) {
                             Text("TOGETHR")
                                 .font(.system(size: 42, weight: .black, design: .rounded))
-                                .tracking(2) // Spacing out letters looks more cinematic
+                                .tracking(2)
                                 .foregroundStyle(
                                     LinearGradient(
                                         colors: [.yellow, .orange],
@@ -139,7 +140,7 @@ struct MainMenuView: View {
                     ContactStartView(navPath: $navPath)
                 case .contactWordSetup:
                     ContactWordSetupView(navPath: $navPath)
-                
+                    
                 // UPDATED: Now handles timeLimit
                 case .contactGame(let secretWord, let timeLimit):
                     ContactGameView(navPath: $navPath, secretWord: secretWord, timeLimit: timeLimit)
@@ -157,7 +158,19 @@ struct MainMenuView: View {
                     HangmanGameView(navPath: $navPath, secretWord: secretWord)
                 case .hangmanResult(let didWin, let secretWord, let incorrectGuesses):
                     HangmanResultView(navPath: $navPath, didWin: didWin, secretWord: secretWord, incorrectGuesses: incorrectGuesses)
-                }
+                    
+                // --- TELESTRATIONS CASES (Now inside the switch) ---
+                case .telestrationsStart:
+                    TelestrationsStartView(navPath: $navPath)
+                case .telestrationsSetup: // Added this just in case you use it, or you can remove if unused
+                     TelestrationsStartView(navPath: $navPath)
+                case .telestrationsPass(let context):
+                    TelestrationsPassView(navPath: $navPath, context: context)
+                case .telestrationsTurn(let context):
+                    TelestrationsTurnView(navPath: $navPath, context: context)
+                case .telestrationsResult(let context):
+                    TelestrationsResultView(navPath: $navPath, context: context)
+                } // <--- Closing brace for switch is NOW here
             }
         }
     }
@@ -168,6 +181,7 @@ struct MainMenuView: View {
         case "20 Questions": return .twentyQuestionsStart
         case "Contact": return .contactStart
         case "Hangman": return .hangmanStart
+        case "Telepathy": return .telestrationsStart
         default: return .twentyQuestionsStart
         }
     }

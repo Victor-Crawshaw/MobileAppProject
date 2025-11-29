@@ -26,4 +26,10 @@ enum GameNavigation: Hashable {
     case hangmanConfirm(secretWord: String)
     case hangmanGame(secretWord: String)
     case hangmanResult(didWin: Bool, secretWord: String, incorrectGuesses: Int)
+
+    case telestrationsStart
+    case telestrationsSetup // Player count selection
+    case telestrationsPass(context: TelepathyContext) // Interstitial "Pass Device"
+    case telestrationsTurn(context: TelepathyContext) // The actual Drawing or Guessing
+    case telestrationsResult(context: TelepathyContext)
 }

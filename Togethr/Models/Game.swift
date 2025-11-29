@@ -24,6 +24,11 @@ extension Game {
         Game(name: "Hangman",
              description: "Guess the word letter by letter before running out of tries.",
              mode: .passAndPlay,
-             emoji: "🎯")
+             emoji: "🎯"),
+
+        Game(name: "Telepathy",
+             description: "Draw. Guess. Draw. Watch the message distort.",
+             mode: .passAndPlay,
+             emoji: "🧠")
     ]
 }
