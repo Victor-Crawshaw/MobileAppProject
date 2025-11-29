@@ -78,7 +78,7 @@ struct TelestrationsTurnView: View {
                             }
                         }
                     } else {
-                        Text("CREATE THE SECRET PHRASE")
+                        Text("CREATE THE SECRET PROMPT")
                             .font(.system(size: 20, weight: .black, design: .rounded))
                             .foregroundColor(.purple)
                             .padding(.top)
@@ -177,7 +177,7 @@ struct TelestrationsTurnView: View {
                 } else {
                     // === TEXT GUESS MODE ===
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("ENTER YOUR GUESS")
+                        Text("ENTER YOUR PROMPT")
                             .font(.caption)
                             .fontDesign(.monospaced)
                             .foregroundColor(.gray)
