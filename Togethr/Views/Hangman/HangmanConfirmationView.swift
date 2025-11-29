@@ -8,66 +8,56 @@ struct HangmanConfirmationView: View {
     
     var body: some View {
         ZStack {
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.orange.opacity(0.7),
-                    Color.red.opacity(0.7)
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .edgesIgnoringSafeArea(.all)
+            Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
-            VStack(spacing: 30) {
+            VStack(spacing: 40) {
                 Spacer()
                 
-                Text("📲")
+                // Animated pulsing icon
+                Image(systemName: "iphone.gen3")
                     .font(.system(size: 100))
-
-                Text("Chooser, pass the phone to the Guesser.")
-                    .font(.custom("ChalkboardSE-Bold", size: 36))
-                    .fontWeight(.bold)
-                    .multilineTextAlignment(.center)
                     .foregroundColor(.white)
-                    .shadow(color: .black.opacity(0.4), radius: 5, y: 5)
-                    .padding(.horizontal, 20)
+                    .symbolEffect(.bounce, options: .repeating)
+                    .shadow(color: .orange, radius: 20)
+
+                VStack(spacing: 15) {
+                    Text("HAND OFF DEVICE")
+                        .font(.system(size: 16, weight: .bold, design: .monospaced))
+                        .foregroundColor(.orange)
+                        .tracking(3)
+                    
+                    Text("Pass to the\nGuesser")
+                        .font(.system(size: 36, weight: .black, design: .rounded))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal)
                 
                 Spacer()
                 
                 Button(action: {
                     navPath.append(GameNavigation.hangmanGame(secretWord: secretWord))
                 }) {
-                    Text("I'm Ready to Guess")
-                        .font(.title2)
-                        .fontWeight(.heavy)
+                    Text("I AM READY")
+                        .font(.system(size: 20, weight: .heavy, design: .rounded))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 18)
                         .background(
-                            Capsule()
-                                .fill(Color.green.gradient)
-                                .shadow(color: .black.opacity(0.3), radius: 5, y: 5)
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(LinearGradient(colors: [.orange, .red], startPoint: .leading, endPoint: .trailing))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(.white.opacity(0.3), lineWidth: 1)
                         )
                         .foregroundColor(.white)
+                        .shadow(color: .orange.opacity(0.5), radius: 10, y: 5)
                 }
-                .padding(.horizontal, 30)
-                
-                Spacer()
+                .buttonStyle(BouncyGameButtonStyle())
+                .padding(.horizontal, 40)
+                .padding(.bottom, 50)
             }
-            .padding()
         }
-        .navigationBarBackButtonHidden(false)
-        .navigationTitle("Pass the Phone")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-struct HangmanConfirmationView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationStack {
-            HangmanConfirmationView(
-                navPath: .constant(NavigationPath()),
-                secretWord: "ELEPHANT"
-            )
-        }
+        .navigationBarHidden(true)
     }
 }

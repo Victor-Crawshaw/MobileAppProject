@@ -119,7 +119,7 @@ struct MainMenuView: View {
             .navigationBarHidden(true)
             .preferredColorScheme(.dark) // Force dark mode for game aesthetic
             
-            // MARK: Navigation Destinations (Unchanged Logic)
+            // MARK: Navigation Destinations
             .navigationDestination(for: GameNavigation.self) { destination in
                 switch destination {
                 case .twentyQuestionsStart:
@@ -134,14 +134,19 @@ struct MainMenuView: View {
                     GameView(navPath: $navPath, category: category, secretWord: secretWord)
                 case .twentyQuestionsResult(let didWin, let questionLog, let category, let secretWord):
                     ResultView(navPath: $navPath, didWin: didWin, questionLog: questionLog, category: category, secretWord: secretWord)
+                    
                 case .contactStart:
                     ContactStartView(navPath: $navPath)
                 case .contactWordSetup:
                     ContactWordSetupView(navPath: $navPath)
-                case .contactGame(let secretWord):
-                    ContactGameView(navPath: $navPath, secretWord: secretWord)
+                
+                // UPDATED: Now handles timeLimit
+                case .contactGame(let secretWord, let timeLimit):
+                    ContactGameView(navPath: $navPath, secretWord: secretWord, timeLimit: timeLimit)
+                    
                 case .contactResult(let didGuessersWin, let secretWord, let reason):
                     ContactResultView(navPath: $navPath, didGuessersWin: didGuessersWin, secretWord: secretWord, reason: reason)
+                    
                 case .hangmanStart:
                     HangmanStartView(navPath: $navPath)
                 case .hangmanWordSetup:

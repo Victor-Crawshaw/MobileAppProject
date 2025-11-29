@@ -10,126 +10,64 @@ struct HangmanResultView: View {
     
     var body: some View {
         ZStack {
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.orange.opacity(0.7),
-                    Color.red.opacity(0.7)
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .edgesIgnoringSafeArea(.all)
+            Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
-            VStack(spacing: 20) {
+            VStack(spacing: 30) {
                 Spacer()
                 
-                // Win/Loss Icon
-                if didWin {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 80))
-                        .foregroundColor(.green)
-                        .padding(10)
-                        .background(Color.white.opacity(0.2))
-                        .clipShape(Circle())
-                    
-                    Text("You Won!")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                // Icon
+                Image(systemName: didWin ? "flag.checkered" : "xmark.skull.fill")
+                    .font(.system(size: 100))
+                    .foregroundColor(didWin ? .green : .red)
+                    .shadow(color: didWin ? .green : .red.opacity(0.5), radius: 20)
+                
+                VStack(spacing: 5) {
+                    Text(didWin ? "SURVIVED" : "ELIMINATED")
+                        .font(.system(size: 40, weight: .black, design: .rounded))
                         .foregroundColor(.white)
                     
-                    Text("The word was: \(secretWord.uppercased())")
-                        .font(.title3)
-                        .foregroundColor(.white)
-                    
-                    Text("With \(6 - incorrectGuesses) \(6 - incorrectGuesses == 1 ? "guess" : "guesses") remaining!")
-                        .font(.headline)
-                        .foregroundColor(.white.opacity(0.8))
-                    
-                } else {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 80))
-                        .foregroundColor(.red)
-                        .padding(10)
-                        .background(Color.white.opacity(0.2))
-                        .clipShape(Circle())
-                    
-                    Text("Game Over")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                    
-                    Text("The word was: \(secretWord.uppercased())")
-                        .font(.title3)
-                        .foregroundColor(.white)
-                    
-                    Text("Better luck next time!")
-                        .font(.headline)
-                        .foregroundColor(.white.opacity(0.8))
+                    Text(didWin ? "Target acquired with \(6 - incorrectGuesses) lives left" : "Too many incorrect attempts")
+                        .font(.system(.body, design: .monospaced))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.gray)
+                        .padding(.horizontal)
                 }
                 
-                // Final Hangman Drawing
-                HangmanDrawing(incorrectGuesses: incorrectGuesses)
-                    .frame(height: 200)
-                    .padding()
+                VStack(spacing: 10) {
+                    Text("SECRET WORD")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.orange)
+                        .tracking(2)
+                    
+                    Text(secretWord)
+                        .font(.system(size: 32, weight: .bold, design: .monospaced))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 40)
+                        .padding(.vertical, 10)
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(10)
+                }
                 
                 Spacer()
                 
-                // Bottom Buttons
-                VStack(spacing: 15) {
-                    Button(action: {
-                        // Pop 3 views: Result, Game, Confirm
-                        navPath.removeLast(3)
-                    }) {
-                        Text("Play Again")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(
-                                Capsule()
-                                    .fill(Color.green.gradient)
-                            )
-                            .foregroundColor(.white)
-                    }
-                    
-                    Button(action: {
-                        navPath.removeLast(navPath.count)
-                    }) {
-                        Text("Main Menu")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(
-                                Capsule()
-                                    .stroke(Color.white.opacity(0.7), lineWidth: 2)
-                                    .fill(Color.white.opacity(0.2))
-                            )
-                            .foregroundColor(.white)
-                    }
+                Button(action: {
+                    navPath = NavigationPath() // Reset to root
+                }) {
+                    Text("RETURN TO MENU")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .shadow(color: .blue.opacity(0.4), radius: 10)
                 }
-                .padding(.horizontal, 30)
+                .buttonStyle(BouncyGameButtonStyle())
+                .padding(.horizontal, 40)
+                .padding(.bottom, 40)
             }
-            .padding()
         }
-        .navigationBarBackButtonHidden(true)
-    }
-}
-
-struct HangmanResultView_Previews: PreviewProvider {
-    static var previews: some View {
-        HangmanResultView(
-            navPath: .constant(NavigationPath()),
-            didWin: true,
-            secretWord: "ELEPHANT",
-            incorrectGuesses: 2
-        )
-        
-        HangmanResultView(
-            navPath: .constant(NavigationPath()),
-            didWin: false,
-            secretWord: "ELEPHANT",
-            incorrectGuesses: 6
-        )
+        .navigationBarHidden(true)
     }
 }

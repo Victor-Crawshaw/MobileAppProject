@@ -5,65 +5,63 @@ struct HangmanHowToPlayView: View {
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 25) {
+        ZStack {
+            Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
-            Text("How to Play")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .frame(maxWidth: .infinity, alignment: .center)
-
-            VStack(alignment: .leading, spacing: 5) {
-                Text("1. Choose a Word")
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                Text("One person, the Chooser, picks a secret word or phrase.")
-                    .foregroundColor(.secondary)
-            }
-            
-            VStack(alignment: .leading, spacing: 5) {
-                Text("2. Guess Letters")
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                Text("The Guesser taps letters to guess them. Correct guesses reveal the letter's position(s) in the word.")
-                    .foregroundColor(.secondary)
-            }
-
-            VStack(alignment: .leading, spacing: 5) {
-                Text("3. Limited Tries")
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                Text("You have 6 incorrect guesses before losing. Each wrong guess adds a body part to the hangman!")
-                    .foregroundColor(.secondary)
-            }
-            
-            VStack(alignment: .leading, spacing: 5) {
-                Text("4. Win or Lose")
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                Text("Complete the word before running out of guesses to win. Otherwise, the hangman is completed and you lose.")
-                    .foregroundColor(.secondary)
-            }
-
-            Spacer()
-            
-            Button(action: {
-                dismiss()
-            }) {
-                Text("Got It!")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
+            VStack(spacing: 0) {
+                // Header
+                Text("TACTICAL GUIDE")
+                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                    .foregroundColor(.orange)
+                    .padding(.top, 30)
+                
+                Text("Hangman Rules")
+                    .font(.system(size: 32, weight: .black, design: .rounded))
                     .foregroundColor(.white)
-                    .font(.headline)
-                    .cornerRadius(12)
+                    .padding(.bottom, 20)
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 30) {
+                        
+                        InstructionBlock(
+                            title: "1. The Setup",
+                            text: "One player (the Chooser) enters a secret word or phrase."
+                        )
+                        
+                        InstructionBlock(
+                            title: "2. The Guess",
+                            text: "The Guesser taps letters on the keypad to reveal them in the secret word."
+                        )
+                        
+                        InstructionBlock(
+                            title: "3. The Danger",
+                            text: "Every incorrect guess adds a piece to the stick figure. You have 6 lives (Head, Body, 2 Arms, 2 Legs)."
+                        )
+                        
+                        InstructionBlock(
+                            title: "4. Victory Condition",
+                            text: "Reveal the entire word before the figure is complete to win. If the figure is finished first, you lose."
+                        )
+                    }
+                    .padding(30)
+                }
+
+                Button(action: { dismiss() }) {
+                    Text("UNDERSTOOD")
+                        .font(.system(size: 16, weight: .bold, design: .monospaced))
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.white.opacity(0.1))
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                        )
+                }
+                .padding(20)
+                .background(Color(red: 0.05, green: 0.0, blue: 0.15))
             }
         }
-        .padding(30)
-    }
-}
-
-struct HangmanHowToPlayView_Previews: PreviewProvider {
-    static var previews: some View {
-        HangmanHowToPlayView()
     }
 }

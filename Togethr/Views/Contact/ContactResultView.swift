@@ -5,118 +5,70 @@ struct ContactResultView: View {
     
     @Binding var navPath: NavigationPath
     
-    let didGuessersWin: Bool
+    let didGuessersWin: Bool // In Contact, if word is revealed, guessers usually "Win" the contact chain, but if they guess the word, they win.
     let secretWord: String
     let reason: String
     
     var body: some View {
-        // NEW: ZStack for gradient
         ZStack {
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.blue.opacity(0.7),
-                    Color.cyan.opacity(0.7)
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .edgesIgnoringSafeArea(.all)
+            Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
             VStack(spacing: 30) {
-                
                 Spacer()
                 
-                // Top Section (Win/Loss)
-                // MODIFIED: Colors for dark background
-                Image(systemName: didGuessersWin ? "party.popper.fill" : "hand.thumbsdown.fill")
-                    .font(.system(size: 80))
-                    .foregroundColor(didGuessersWin ? .green : .red)
-                    .padding(10)
-                    .background(Color.white.opacity(0.2))
-                    .clipShape(Circle())
+                // Icon
+                Image(systemName: didGuessersWin ? "flag.checkered" : "xmark.shield.fill")
+                    .font(.system(size: 100))
+                    .foregroundColor(didGuessersWin ? .yellow : .red)
+                    .shadow(color: didGuessersWin ? .orange : .red.opacity(0.5), radius: 20)
                 
-                Text(didGuessersWin ? "Guessers Win!" : "Guessers Lose!")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                
-                Text(reason) // e.g., "You guessed the word!"
-                    .font(.headline)
-                    .foregroundColor(.white.opacity(0.8))
-                
-                Text("The secret word was:")
-                    .font(.title3)
-                    .foregroundColor(.white.opacity(0.8))
-                    .padding(.top, 10)
-                
-                Text(secretWord)
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                
-                Spacer()
-                
-                // Bottom Buttons
-                VStack(spacing: 15) {
-                    // MODIFIED: "Play Again" button (Green Capsule)
-                    Button(action: {
-                        // Pop 2 views: Result, Game
-                        // This lands you back on ContactWordSetupView
-                        navPath.removeLast(2)
-                    }) {
-                        Text("Play Again")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(
-                                Capsule()
-                                    .fill(Color.green.gradient)
-                            )
-                            .foregroundColor(.white)
-                    }
+                VStack(spacing: 5) {
+                    Text(didGuessersWin ? "GAME OVER" : "DEFENDED")
+                        .font(.system(size: 40, weight: .black, design: .rounded))
+                        .foregroundColor(.white)
                     
-                    // MODIFIED: "Main Menu" button (Stroked Capsule)
-                    Button(action: {
-                        // Pop all views to return to the root (MainMenuView)
-                        navPath.removeLast(navPath.count)
-                    }) {
-                        Text("Main Menu")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(
-                                Capsule()
-                                    .stroke(Color.white.opacity(0.7), lineWidth: 2)
-                                    .fill(Color.white.opacity(0.2))
-                            )
-                            .foregroundColor(.white)
-                    }
+                    Text(reason)
+                        .font(.system(.body, design: .monospaced))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.gray)
+                        .padding(.horizontal)
                 }
-                .padding(.horizontal, 30)
+                
+                VStack(spacing: 10) {
+                    Text("SECRET WORD")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.teal)
+                        .tracking(2)
+                    
+                    Text(secretWord)
+                        .font(.system(size: 32, weight: .bold, design: .monospaced))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 40)
+                        .padding(.vertical, 10)
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(10)
+                }
+                
+                Spacer()
+                
+                Button(action: {
+                    navPath = NavigationPath() // Reset to root
+                }) {
+                    Text("RETURN TO MENU")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .shadow(color: .blue.opacity(0.4), radius: 10)
+                }
+                .buttonStyle(BouncyGameButtonStyle())
+                .padding(.horizontal, 40)
+                .padding(.bottom, 40)
             }
-            .padding()
         }
-        .navigationBarBackButtonHidden(true)
-    }
-}
-
-struct ContactResultView_Previews: PreviewProvider {
-    static var previews: some View {
-        // Win state preview
-        ContactResultView(
-            navPath: .constant(NavigationPath()),
-            didGuessersWin: true,
-            secretWord: "SWIFTUI",
-            reason: "You guessed the word!"
-        )
-        
-        // Lose state preview
-        ContactResultView(
-            navPath: .constant(NavigationPath()),
-            didGuessersWin: false,
-            secretWord: "DEVELOPER",
-            reason: "You gave up!"
-        )
+        .navigationBarHidden(true)
     }
 }

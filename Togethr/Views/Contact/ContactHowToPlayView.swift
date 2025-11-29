@@ -5,157 +5,81 @@ struct ContactHowToPlayView: View {
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
-        VStack(spacing: 0) {
+        ZStack {
+            Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
-            Text("How to Play: Contact")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding(.top, 30)
-                .padding(.bottom, 20)
-                .padding(.horizontal)
-
-            // ScrollView to contain all the rules
-            ScrollView {
-                VStack(alignment: .leading, spacing: 25) {
-                    
-                    // Overview Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Overview")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                        
-                        Text("One player is the **Defender** who thinks of a secret word. Everyone else works together to guess it by giving clever clues.")
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    // How It Works Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("How It Works")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                        
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack(alignment: .top, spacing: 10) {
-                                Text("1.")
-                                    .fontWeight(.semibold)
-                                    .frame(width: 20, alignment: .leading)
-                                Text("The Defender reveals the **first letter** of their secret word.")
-                            }
-                            
-                            HStack(alignment: .top, spacing: 10) {
-                                Text("2.")
-                                    .fontWeight(.semibold)
-                                    .frame(width: 20, alignment: .leading)
-                                Text("Players give **clues** to words starting with that letter, trying to stump the Defender while helping others guess.")
-                            }
-                            
-                            HStack(alignment: .top, spacing: 10) {
-                                Text("3.")
-                                    .fontWeight(.semibold)
-                                    .frame(width: 20, alignment: .leading)
-                                Text("When someone thinks they know the clue word, they yell **\"Contact!\"**")
-                            }
-                            
-                            HStack(alignment: .top, spacing: 10) {
-                                Text("4.")
-                                    .fontWeight(.semibold)
-                                    .frame(width: 20, alignment: .leading)
-                                Text("The Defender tries to guess the clue word. If they can't, they say **\"Challenge!\"**")
-                            }
-                            
-                            HStack(alignment: .top, spacing: 10) {
-                                Text("5.")
-                                    .fontWeight(.semibold)
-                                    .frame(width: 20, alignment: .leading)
-                                Text("On \"Challenge,\" the clue-giver and contacter count to 3 and shout their word. If they **match**, the Defender reveals the next letter!")
-                            }
-                        }
-                        .foregroundColor(.secondary)
-                    }
-                    
-                    // Example Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Example Round")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                        
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Secret word: **duck** → Letter revealed: **D**")
-                                .fontWeight(.medium)
-                            
-                            Text("• Player 1: \"A type of flower\"")
-                            Text("• Player 2: \"Contact!\"")
-                            Text("• Defender: \"Daisy? Dandelion? OK, Challenge!\"")
-                            Text("• Both players: \"1... 2... 3... Daffodil!\"")
-                            Text("• ✅ They match! Next letters revealed: **Du**")
-                            
-                            Text("\nNow all clues must start with \"Du.\" The process repeats until someone guesses the full word!")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .italic()
-                        }
-                        .padding()
-                        .background(Color.blue.opacity(0.1))
-                        .cornerRadius(10)
-                    }
-                    
-                    // Important Rules
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Important Rules")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            RuleRow(icon: "💬", text: "No turns—anyone can give a clue anytime")
-                            RuleRow(icon: "🚫", text: "Each word can only be used once as a clue")
-                            RuleRow(icon: "👥", text: "Multiple people can contact the same clue")
-                            RuleRow(icon: "⏱️", text: "Defenders can call \"Challenge\" early to prevent more contacts")
-                            RuleRow(icon: "🏆", text: "Win by giving a clue to the secret word that gets revealed through a challenge")
-                            RuleRow(icon: "✏️", text: "Clue-givers can modify or drop their clue if no one contacts")
-                        }
-                    }
-                    
-                }
-                .padding(.horizontal, 30)
-                .padding(.bottom, 20)
-            }
-
-            // "Got It!" button sticks to the bottom
-            Button(action: {
-                dismiss()
-            }) {
-                Text("Got It!")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
+            VStack(spacing: 0) {
+                // Header
+                Text("TACTICAL GUIDE")
+                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                    .foregroundColor(.teal)
+                    .padding(.top, 30)
+                
+                Text("How to Play")
+                    .font(.system(size: 32, weight: .black, design: .rounded))
                     .foregroundColor(.white)
-                    .font(.headline)
-                    .cornerRadius(12)
+                    .padding(.bottom, 20)
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 30) {
+                        
+                        InstructionBlock(
+                            title: "1. The Defender",
+                            text: "One player thinks of a Secret Word (e.g. 'ASTEROID') and gives the first letter ('A')."
+                        )
+                        
+                        InstructionBlock(
+                            title: "2. The Guessers",
+                            text: "Everyone else thinks of words starting with 'A'. They give clues to each other: 'Is it a fruit?'"
+                        )
+                        
+                        InstructionBlock(
+                            title: "3. Contact!",
+                            text: "If another Guesser knows the clue (e.g. 'APPLE'), they say 'CONTACT!'. Then both count down '3, 2, 1...' and say their words."
+                        )
+                        
+                        InstructionBlock(
+                            title: "4. The Reveal",
+                            text: "If the words match, the Defender must reveal the next letter of the Secret Word ('S'). If the Defender guesses the clue first, no letter is revealed."
+                        )
+                    }
+                    .padding(30)
+                }
+
+                Button(action: { dismiss() }) {
+                    Text("UNDERSTOOD")
+                        .font(.system(size: 16, weight: .bold, design: .monospaced))
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.white.opacity(0.1))
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                        )
+                }
+                .padding(20)
+                .background(Color(red: 0.05, green: 0.0, blue: 0.15))
             }
-            .padding(.horizontal, 30)
-            .padding(.vertical, 20)
-            .background(.bar)
         }
     }
 }
 
-// Helper view for rule rows
-struct RuleRow: View {
-    let icon: String
+struct InstructionBlock: View {
+    let title: String
     let text: String
     
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Text(icon)
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
                 .font(.title3)
+                .fontWeight(.heavy)
+                .foregroundColor(.purple)
             Text(text)
-                .foregroundColor(.secondary)
+                .font(.body)
+                .foregroundColor(.gray)
+                .lineSpacing(4)
         }
-    }
-}
-
-struct ContactHowToPlayView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContactHowToPlayView()
     }
 }

@@ -17,7 +17,8 @@ enum GameNavigation: Hashable {
     
     // --- Contact Flow ---
     case contactWordSetup
-    case contactGame(secretWord: String)
+    // UPDATED: Added timeLimit parameter
+    case contactGame(secretWord: String, timeLimit: TimeInterval?)
     case contactResult(didGuessersWin: Bool, secretWord: String, reason: String)
     
     // --- Hangman Flow ---
