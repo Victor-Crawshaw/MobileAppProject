@@ -1,4 +1,3 @@
-// Views/TwentyQuestions/GameView.swift
 import SwiftUI
 import Speech
 
@@ -15,10 +14,20 @@ struct GameView: View {
     @State private var questionAwaitingAnswer: Bool = false
     @State private var showingQuestionLog = false
     
+    // UI State
+    @FocusState private var isInputActive: Bool // New: To manage keyboard focus
+    
     var body: some View {
         ZStack {
             // MARK: 1. Background (Deep Space)
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
+            
+            // Background tap to dismiss keyboard
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    isInputActive = false
+                }
             
             // Ambient Glow (Star/Nebula effect)
             GeometryReader { geo in
@@ -108,7 +117,8 @@ struct GameView: View {
                                     .multilineTextAlignment(.center)
                                 
                             } else {
-                                if currentQuestionText.isEmpty {
+                                if currentQuestionText.isEmpty && !isInputActive {
+                                    // Idle State
                                     VStack(spacing: 8) {
                                         Image(systemName: "waveform")
                                             .foregroundColor(.white.opacity(0.2))
@@ -118,10 +128,32 @@ struct GameView: View {
                                             .foregroundColor(.white.opacity(0.4))
                                     }
                                 } else {
-                                    Text(currentQuestionText)
-                                        .font(.system(size: 22, weight: .bold, design: .rounded))
-                                        .foregroundColor(.white)
-                                        .multilineTextAlignment(.center)
+                                    // Result State (Editable)
+                                    VStack(spacing: 5) {
+                                        TextField("Type Question...", text: $currentQuestionText, axis: .vertical)
+                                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                                            .foregroundColor(.white)
+                                            .multilineTextAlignment(.center)
+                                            .submitLabel(.done)
+                                            .focused($isInputActive)
+                                            .onChange(of: currentQuestionText) { newValue in
+                                                // Ensure we are in "answering mode" if the user types manually
+                                                if !newValue.isEmpty {
+                                                    questionAwaitingAnswer = true
+                                                }
+                                            }
+                                        
+                                        // Edit hint
+                                        if !isInputActive {
+                                            HStack(spacing: 4) {
+                                                Image(systemName: "pencil")
+                                                Text("Tap text to edit")
+                                            }
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.3))
+                                            .padding(.top, 5)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -265,9 +297,13 @@ struct GameView: View {
         currentQuestionText = ""
         speechRecognizer.resetTranscript()
         questionAwaitingAnswer = false
+        isInputActive = false
     }
     
     func logAnswer(answer: Answer) {
+        // Dismiss keyboard if open
+        isInputActive = false
+        
         let newLogEntry = RecordedQuestion(questionText: currentQuestionText, answer: answer)
         questionLog.append(newLogEntry)
         
