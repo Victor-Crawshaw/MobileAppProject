@@ -5,7 +5,7 @@ struct ContactGameView: View {
     
     @Binding var navPath: NavigationPath
     let secretWord: String
-    let timeLimit: TimeInterval? // New Parameter
+    let timeLimit: TimeInterval?
     
     // --- Game State ---
     @State private var revealedCount: Int = 1
@@ -37,18 +37,20 @@ struct ContactGameView: View {
                     .fill(timeLimit != nil && timeRemaining < 30 ? Color.red.opacity(0.1) : Color.blue.opacity(0.1))
                     .frame(width: 400, height: 400)
                     .blur(radius: 80)
-                    .position(x: geo.size.width / 2, y: geo.size.height * 0.4)
-                    .animation(.easeInOut, value: timeRemaining)
+                    .position(x: geo.size.width / 2, y: geo.size.height * 0.3)
             }
             
-            VStack(spacing: 0) {
+            VStack(spacing: 30) {
                 
-                // HUD Header
+                // MARK: 1. HUD (Added Abort Button)
                 HStack {
-                    Button(action: { navPath = NavigationPath() }) {
+                    // Abort Button
+                    Button(action: {
+                        navPath = NavigationPath() // Reset to Home
+                    }) {
                         HStack(spacing: 5) {
                             Image(systemName: "xmark.circle.fill")
-                            Text("ABORT")
+                            Text("ABORT GAME")
                         }
                         .font(.system(size: 12, weight: .bold, design: .monospaced))
                         .foregroundColor(.red.opacity(0.8))
@@ -59,118 +61,86 @@ struct ContactGameView: View {
                     
                     Spacer()
                     
-                    // Timer Display
                     if timeLimit != nil {
-                        HStack(spacing: 5) {
-                            Image(systemName: "clock.fill")
-                            Text(timeString)
-                                .font(.system(size: 16, weight: .black, design: .monospaced))
-                                .monospacedDigit()
-                        }
-                        .foregroundColor(timeRemaining < 60 ? .red : .teal)
-                        .padding(8)
-                        .background(Color.black.opacity(0.3))
-                        .cornerRadius(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(timeRemaining < 60 ? Color.red.opacity(0.5) : Color.teal.opacity(0.5), lineWidth: 1)
-                        )
-                    } else {
-                        Text("ZEN MODE")
-                            .font(.system(size: 12, weight: .bold, design: .monospaced))
-                            .foregroundColor(.teal.opacity(0.5))
+                        Text(timeString)
+                            .font(.system(size: 20, weight: .bold, design: .monospaced))
+                            .foregroundColor(timeRemaining < 30 ? .red : .white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.black.opacity(0.3))
+                            .cornerRadius(8)
                     }
                 }
-                .padding()
+                .padding(.horizontal)
+                .padding(.top, 10)
                 
                 Spacer()
                 
-                // Main Content
-                VStack(spacing: 40) {
+                // MARK: 2. Word Display
+                VStack(spacing: 10) {
+                    Text("CURRENT STATUS")
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .foregroundColor(.gray)
+                        .tracking(2)
                     
-                    VStack(spacing: 10) {
-                        Text("CURRENT REVEAL")
-                            .font(.system(size: 14, weight: .bold, design: .monospaced))
-                            .foregroundColor(.purple)
-                            .tracking(2)
-                        
-                        // The Word Display
-                        HStack(spacing: 0) {
-                            Text(displayedWord)
-                                .foregroundColor(.white)
-                            Text(String(repeating: "_", count: max(0, secretWord.count - revealedCount)))
-                                .foregroundColor(.white.opacity(0.3))
-                        }
-                        .font(.system(size: 60, weight: .black, design: .monospaced))
-                        .minimumScaleFactor(0.5)
-                        .lineLimit(1)
-                        .padding(.horizontal)
-                        .shadow(color: .purple.opacity(0.5), radius: 10)
-                        
-                        Text("\(secretWord.count) LETTERS TOTAL")
-                            .font(.caption)
-                            .fontDesign(.monospaced)
-                            .foregroundColor(.gray)
+                    HStack(spacing: 2) {
+                        // Revealed part
+                        Text(displayedWord)
+                            .foregroundColor(.white)
+                        // Hidden part
+                        Text(String(repeating: "_", count: secretWord.count - revealedCount))
+                            .foregroundColor(.white.opacity(0.2))
                     }
+                    .font(.system(size: 50, weight: .black, design: .monospaced))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+                }
+                
+                Spacer()
+                
+                // MARK: 3. Controls
+                VStack(spacing: 15) {
                     
-                    // Controls
-                    VStack(spacing: 15) {
+                    HStack(spacing: 15) {
+                        // Undo Button
+                        if !history.isEmpty {
+                            Button(action: undoLastAction) {
+                                Image(systemName: "arrow.uturn.backward")
+                                    .font(.title2)
+                                    .frame(width: 60, height: 60)
+                                    .background(Color.white.opacity(0.1))
+                                    .foregroundColor(.white)
+                                    .clipShape(Circle())
+                            }
+                        }
+                        
+                        // Reveal Button
                         Button(action: revealNextLetter) {
                             Text("REVEAL NEXT LETTER")
-                                .font(.system(size: 18, weight: .heavy, design: .rounded))
+                                .font(.system(size: 16, weight: .heavy, design: .rounded))
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 18)
+                                .frame(height: 60)
                                 .background(Color.teal)
-                                .foregroundColor(.black)
+                                .foregroundColor(.white)
                                 .cornerRadius(16)
-                                .shadow(color: .teal.opacity(0.5), radius: 10)
-                        }
-                        .buttonStyle(BouncyGameButtonStyle())
-                        .disabled(revealedCount >= secretWord.count)
-                        
-                        HStack(spacing: 15) {
-                            // Undo Button
-                            Button(action: undoLastAction) {
-                                HStack {
-                                    Image(systemName: "arrow.uturn.backward")
-                                    Text("UNDO")
-                                }
-                                .font(.system(size: 14, weight: .bold, design: .monospaced))
-                                .foregroundColor(.gray)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.white.opacity(0.05))
-                                .cornerRadius(12)
-                            }
-                            .buttonStyle(BouncyGameButtonStyle())
-                            .disabled(history.isEmpty)
-                            
-                            // Give Up Button (Only if No Timer)
-                            if timeLimit == nil {
-                                Button(action: giveUp) {
-                                    HStack {
-                                        Image(systemName: "flag.fill")
-                                        Text("GIVE UP")
-                                    }
-                                    .font(.system(size: 14, weight: .bold, design: .monospaced))
-                                    .foregroundColor(.red)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.red.opacity(0.1))
-                                    .cornerRadius(12)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.red.opacity(0.3), lineWidth: 1)
-                                    )
-                                }
-                                .buttonStyle(BouncyGameButtonStyle())
-                            }
+                                .shadow(color: .teal.opacity(0.4), radius: 8)
                         }
                     }
-                    .padding(.horizontal, 40)
+                    
+                    // Give Up / Defenders Win
+                    Button(action: giveUp) {
+                        Text("GUESSERS SURRENDER")
+                            .font(.system(size: 14, weight: .bold, design: .monospaced))
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.red.opacity(0.1))
+                            .foregroundColor(.red)
+                            .cornerRadius(12)
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.red.opacity(0.3), lineWidth: 1))
+                    }
                 }
-                
-                Spacer()
+                .padding(.horizontal, 40)
+                .padding(.bottom, 20)
             }
         }
         .navigationBarHidden(true)

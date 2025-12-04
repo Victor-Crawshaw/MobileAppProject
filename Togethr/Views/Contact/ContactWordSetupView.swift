@@ -20,6 +20,23 @@ struct ContactWordSetupView: View {
             
             VStack(spacing: 30) {
                 
+                // Navigation Header (Added Back Button)
+                HStack {
+                    Button(action: {
+                        if !navPath.isEmpty { navPath.removeLast() }
+                    }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "chevron.left")
+                            Text("Back")
+                        }
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundColor(.white.opacity(0.7))
+                        .padding(.leading, 20)
+                    }
+                    Spacer()
+                }
+                .padding(.top, 10)
+                
                 // Header
                 VStack(spacing: 10) {
                     Text("SETUP PHASE")
@@ -31,7 +48,6 @@ struct ContactWordSetupView: View {
                         .font(.system(size: 32, weight: .black, design: .rounded))
                         .foregroundColor(.white)
                 }
-                .padding(.top, 40)
                 
                 // Input Field
                 VStack(alignment: .leading, spacing: 10) {
@@ -41,21 +57,26 @@ struct ContactWordSetupView: View {
                         .foregroundColor(.gray)
                         .padding(.leading, 5)
                     
-                    SecureField("", text: $secretWord)
-                        .textFieldStyle(.plain)
+                    // TextField ensures visibility (SecureField would hide it)
+                    TextField("", text: $secretWord)
+                        .placeholder(when: secretWord.isEmpty) {
+                            Text("e.g. ASTEROID").foregroundColor(.gray.opacity(0.5))
+                        }
                         .font(.system(size: 24, weight: .bold, design: .monospaced))
-                        .foregroundColor(.white)
+                        .foregroundColor(.teal)
                         .padding()
-                        .background(Color.white.opacity(0.1))
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(isFocused ? Color.teal : Color.clear, lineWidth: 2)
+                        .background(
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(Color.black.opacity(0.3))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .stroke(isFocused ? Color.teal : Color.white.opacity(0.1), lineWidth: 2)
+                                )
                         )
                         .focused($isFocused)
                         .submitLabel(.done)
-                        .placeholder(when: secretWord.isEmpty) {
-                            Text("e.g. ELEPHANT").foregroundColor(.gray.opacity(0.5)).padding(.leading, 15)
+                        .onChange(of: secretWord) { _ in
+                            errorMessage = nil
                         }
                     
                     if let error = errorMessage {
@@ -65,57 +86,44 @@ struct ContactWordSetupView: View {
                             .padding(.leading, 5)
                     }
                 }
-                .padding(.horizontal, 40)
+                .padding(.horizontal, 30)
                 
-                // MARK: - Timer Settings
-                VStack(spacing: 15) {
-                    Toggle(isOn: $isTimerEnabled) {
-                        HStack {
-                            Image(systemName: isTimerEnabled ? "timer" : "infinity.circle")
-                                .foregroundColor(isTimerEnabled ? .yellow : .gray)
-                            Text(isTimerEnabled ? "TIME LIMIT" : "ZEN MODE (NO TIMER)")
-                                .font(.system(size: 16, weight: .bold, design: .monospaced))
-                                .foregroundColor(.white)
-                        }
+                // Timer Toggle
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text("Timer Limit")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        Text(isTimerEnabled ? "\(timerDurationMinutes) Minutes" : "No Time Limit")
+                            .font(.caption)
+                            .foregroundColor(.gray)
                     }
-                    .toggleStyle(SwitchToggleStyle(tint: .teal))
-                    .padding()
-                    .background(Color.white.opacity(0.05))
-                    .cornerRadius(12)
                     
-                    if isTimerEnabled {
-                        HStack {
-                            Text("DURATION:")
-                                .font(.system(size: 14, weight: .bold, design: .monospaced))
-                                .foregroundColor(.gray)
-                            
-                            Spacer()
-                            
-                            Picker("Duration", selection: $timerDurationMinutes) {
-                                Text("3 Min").tag(3)
-                                Text("5 Min").tag(5)
-                                Text("10 Min").tag(10)
-                                Text("15 Min").tag(15)
-                            }
-                            .pickerStyle(.menu)
-                            .accentColor(.teal)
-                            .background(Color.white.opacity(0.1))
-                            .cornerRadius(8)
-                        }
-                        .padding(.horizontal)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                    }
+                    Spacer()
+                    
+                    Toggle("", isOn: $isTimerEnabled)
+                        .labelsHidden()
+                        .tint(.teal)
                 }
-                .padding(.horizontal, 40)
+                .padding(20)
+                .background(Color.white.opacity(0.05))
+                .cornerRadius(15)
+                .padding(.horizontal, 30)
+                
+                if isTimerEnabled {
+                    Stepper("Duration: \(timerDurationMinutes) min", value: $timerDurationMinutes, in: 1...30)
+                        .font(.system(.body, design: .monospaced))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 40)
+                }
                 
                 Spacer()
                 
                 // Confirm Button
                 Button(action: handleConfirm) {
                     HStack {
-                        Text("LOCK IN SETTINGS")
-                            .tracking(1)
-                        Image(systemName: "lock.fill")
+                        Text("CONFIRM SETUP")
+                        Image(systemName: "checkmark.shield.fill")
                     }
                     .font(.system(size: 18, weight: .heavy, design: .rounded))
                     .frame(maxWidth: .infinity)
@@ -136,6 +144,7 @@ struct ContactWordSetupView: View {
         .onAppear { isFocused = true }
         .toolbarBackground(.hidden, for: .navigationBar)
         .animation(.spring(), value: isTimerEnabled)
+        .navigationBarHidden(true)
     }
     
     private func handleConfirm() {
@@ -147,7 +156,6 @@ struct ContactWordSetupView: View {
             // Calculate time limit (nil if disabled)
             let limit: TimeInterval? = isTimerEnabled ? TimeInterval(timerDurationMinutes * 60) : nil
             
-            // NOTE: You must update your GameNavigation enum to accept 'timeLimit'
             navPath.append(GameNavigation.contactGame(secretWord: cleaned, timeLimit: limit))
         }
     }
@@ -159,3 +167,4 @@ struct ContactWordSetupView: View {
         return nil
     }
 }
+
