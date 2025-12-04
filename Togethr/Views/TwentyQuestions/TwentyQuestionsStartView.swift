@@ -4,6 +4,9 @@ struct TwentyQuestionsStartView: View {
     
     @Binding var navPath: NavigationPath
     @State private var showingHowToPlay = false
+    
+    // Add dismiss environment to handle "Back" to Home Page
+    @Environment(\.dismiss) var dismiss
 
     var body: some View {
         ZStack {
@@ -17,9 +20,27 @@ struct TwentyQuestionsStartView: View {
             }
             
             VStack(spacing: 30) {
+                
+                // MARK: 2. Navigation Header (Added Back Button)
+                HStack {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "chevron.left")
+                            Text("Back")
+                        }
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundColor(.white.opacity(0.7))
+                        .padding(.leading, 20)
+                    }
+                    Spacer()
+                }
+                .padding(.top, 10)
+                
                 Spacer()
                 
-                // MARK: 2. Hero Logo
+                // MARK: 3. Hero Logo
                 ZStack {
                     Circle()
                         .fill(LinearGradient(colors: [.purple.opacity(0.3), .clear], startPoint: .top, endPoint: .bottom))
@@ -45,7 +66,7 @@ struct TwentyQuestionsStartView: View {
                 
                 Spacer()
                 
-                // MARK: 3. Action Buttons
+                // MARK: 4. Action Buttons
                 VStack(spacing: 20) {
                     Button(action: {
                         navPath.append(GameNavigation.twentyQuestionsCategory)
