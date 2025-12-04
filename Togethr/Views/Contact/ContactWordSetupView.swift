@@ -3,11 +3,13 @@ import SwiftUI
 
 struct ContactWordSetupView: View {
     
+    // MARK: - Properties
     @Binding var navPath: NavigationPath
     
+    // Input State
     @State private var secretWord: String = ""
     @State private var errorMessage: String?
-    @FocusState private var isFocused: Bool
+    @FocusState private var isFocused: Bool // Controls keyboard focus
     
     // Timer Settings
     @State private var isTimerEnabled: Bool = false
@@ -15,12 +17,13 @@ struct ContactWordSetupView: View {
     
     var body: some View {
         ZStack {
-            // Background
+            // MARK: Background
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
             VStack(spacing: 30) {
                 
-                // Navigation Header (Added Back Button)
+                // MARK: Navigation Header
+                // Includes logic to remove the current view from the stack
                 HStack {
                     Button(action: {
                         if !navPath.isEmpty { navPath.removeLast() }
@@ -37,7 +40,7 @@ struct ContactWordSetupView: View {
                 }
                 .padding(.top, 10)
                 
-                // Header
+                // MARK: Page Header
                 VStack(spacing: 10) {
                     Text("SETUP PHASE")
                         .font(.system(size: 14, weight: .bold, design: .monospaced))
@@ -49,7 +52,7 @@ struct ContactWordSetupView: View {
                         .foregroundColor(.white)
                 }
                 
-                // Input Field
+                // MARK: Input Field
                 VStack(alignment: .leading, spacing: 10) {
                     Text("DEFENDER INPUT ONLY")
                         .font(.caption)
@@ -57,12 +60,12 @@ struct ContactWordSetupView: View {
                         .foregroundColor(.gray)
                         .padding(.leading, 5)
                     
-                    // TextField ensures visibility (SecureField would hide it)
+                    // TextField ensures visibility (SecureField would hide it, but Defender might want to check spelling)
                     TextField("", text: $secretWord)
                         .placeholder(when: secretWord.isEmpty) {
                             Text("e.g. ASTEROID").foregroundColor(.gray.opacity(0.5))
                         }
-                        .font(.system(size: 24, weight: .bold, design: .monospaced))
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
                         .foregroundColor(.teal)
                         .padding()
                         .background(
@@ -75,10 +78,9 @@ struct ContactWordSetupView: View {
                         )
                         .focused($isFocused)
                         .submitLabel(.done)
-                        .onChange(of: secretWord) { _ in
-                            errorMessage = nil
-                        }
+                        .onChange(of: secretWord) { _ in errorMessage = nil } // Clear error when typing
                     
+                    // Error Message Display
                     if let error = errorMessage {
                         Text(error)
                             .font(.caption)
@@ -88,42 +90,55 @@ struct ContactWordSetupView: View {
                 }
                 .padding(.horizontal, 30)
                 
-                // Timer Toggle
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text("Timer Limit")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                        Text(isTimerEnabled ? "\(timerDurationMinutes) Minutes" : "No Time Limit")
-                            .font(.caption)
-                            .foregroundColor(.gray)
+                // MARK: Timer Toggle Section
+                VStack(spacing: 15) {
+                    Toggle(isOn: $isTimerEnabled) {
+                        HStack {
+                            Image(systemName: "timer")
+                                .foregroundColor(.orange)
+                            Text("Enable Time Limit")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                        }
                     }
+                    .tint(.orange)
+                    .padding()
+                    .background(Color.white.opacity(0.05))
+                    .cornerRadius(12)
                     
-                    Spacer()
-                    
-                    Toggle("", isOn: $isTimerEnabled)
-                        .labelsHidden()
-                        .tint(.teal)
+                    // Conditional Slider for duration
+                    if isTimerEnabled {
+                        VStack(spacing: 5) {
+                            HStack {
+                                Text("Duration")
+                                    .foregroundColor(.gray)
+                                Spacer()
+                                Text("\(timerDurationMinutes) Minutes")
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.orange)
+                            }
+                            
+                            Slider(value: Binding(
+                                get: { Double(timerDurationMinutes) },
+                                set: { timerDurationMinutes = Int($0) }
+                            ), in: 1...15, step: 1)
+                            .accentColor(.orange)
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.05))
+                        .cornerRadius(12)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                    }
                 }
-                .padding(20)
-                .background(Color.white.opacity(0.05))
-                .cornerRadius(15)
                 .padding(.horizontal, 30)
-                
-                if isTimerEnabled {
-                    Stepper("Duration: \(timerDurationMinutes) min", value: $timerDurationMinutes, in: 1...30)
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 40)
-                }
                 
                 Spacer()
                 
-                // Confirm Button
+                // MARK: Confirm / Start Button
                 Button(action: handleConfirm) {
                     HStack {
-                        Text("CONFIRM SETUP")
-                        Image(systemName: "checkmark.shield.fill")
+                        Text("LOCK & START")
+                        Image(systemName: "lock.shield.fill")
                     }
                     .font(.system(size: 18, weight: .heavy, design: .rounded))
                     .frame(maxWidth: .infinity)
@@ -141,12 +156,15 @@ struct ContactWordSetupView: View {
                 .padding(.bottom, 20)
             }
         }
-        .onAppear { isFocused = true }
+        .onAppear { isFocused = true } // Auto-focus input
         .toolbarBackground(.hidden, for: .navigationBar)
         .animation(.spring(), value: isTimerEnabled)
         .navigationBarHidden(true)
     }
     
+    // MARK: - Logic Functions
+    
+    // Validates input and pushes the Game View
     private func handleConfirm() {
         if let error = validateSecretWord(secretWord) {
             errorMessage = error
@@ -160,6 +178,7 @@ struct ContactWordSetupView: View {
         }
     }
     
+    // Basic validation rules
     func validateSecretWord(_ word: String) -> String? {
         let cleaned = word.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         if cleaned.count < 3 { return "Word must be at least 3 letters." }
@@ -167,4 +186,3 @@ struct ContactWordSetupView: View {
         return nil
     }
 }
-

@@ -3,25 +3,29 @@ import SwiftUI
 
 struct ContactResultView: View {
     
+    // MARK: - Properties
     @Binding var navPath: NavigationPath
     
-    let didGuessersWin: Bool // In Contact, if word is revealed, guessers usually "Win" the contact chain, but if they guess the word, they win.
+    let didGuessersWin: Bool
     let secretWord: String
     let reason: String
     
     var body: some View {
         ZStack {
+            // MARK: Background
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
             VStack(spacing: 30) {
                 Spacer()
                 
-                // Icon
+                // MARK: Outcome Icon
+                // Flag for Victory, Shield/X for Defeat/Defense
                 Image(systemName: didGuessersWin ? "flag.checkered" : "xmark.shield.fill")
                     .font(.system(size: 100))
                     .foregroundColor(didGuessersWin ? .yellow : .red)
                     .shadow(color: didGuessersWin ? .orange : .red.opacity(0.5), radius: 20)
                 
+                // MARK: Outcome Text
                 VStack(spacing: 5) {
                     Text(didGuessersWin ? "GAME OVER" : "DEFENDED")
                         .font(.system(size: 40, weight: .black, design: .rounded))
@@ -34,6 +38,7 @@ struct ContactResultView: View {
                         .padding(.horizontal)
                 }
                 
+                // MARK: Secret Reveal
                 VStack(spacing: 10) {
                     Text("SECRET WORD")
                         .font(.caption)
@@ -52,6 +57,7 @@ struct ContactResultView: View {
                 
                 Spacer()
                 
+                // MARK: Return Button
                 Button(action: {
                     navPath = NavigationPath() // Reset to root
                 }) {

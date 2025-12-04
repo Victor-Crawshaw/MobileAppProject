@@ -2,14 +2,16 @@
 import SwiftUI
 
 struct ContactHowToPlayView: View {
+    // Access dismiss to close the sheet
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
         ZStack {
+            // Background
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Header
+                // MARK: Header
                 Text("TACTICAL GUIDE")
                     .font(.system(size: 12, weight: .bold, design: .monospaced))
                     .foregroundColor(.teal)
@@ -20,6 +22,7 @@ struct ContactHowToPlayView: View {
                     .foregroundColor(.white)
                     .padding(.bottom, 20)
 
+                // MARK: Instructions ScrollView
                 ScrollView {
                     VStack(alignment: .leading, spacing: 30) {
                         
@@ -35,7 +38,7 @@ struct ContactHowToPlayView: View {
                         
                         InstructionBlock(
                             title: "3. Contact!",
-                            text: "If another Guesser knows the clue (e.g. 'APPLE'), they say 'CONTACT!'. Then both count down '3, 2, 1...' and say their words."
+                            text: "If another Guesser knows the clue (e.g. 'Apple'), they shout 'CONTACT!'. Then they count '3-2-1' and say their words together."
                         )
                         
                         InstructionBlock(
@@ -46,6 +49,7 @@ struct ContactHowToPlayView: View {
                     .padding(30)
                 }
 
+                // MARK: Dismiss Button
                 Button(action: { dismiss() }) {
                     Text("UNDERSTOOD")
                         .font(.system(size: 16, weight: .bold, design: .monospaced))
@@ -66,6 +70,8 @@ struct ContactHowToPlayView: View {
     }
 }
 
+// MARK: - Helper View
+// Reusable component for instruction steps
 struct InstructionBlock: View {
     let title: String
     let text: String

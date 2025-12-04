@@ -3,18 +3,21 @@ import SwiftUI
 
 struct ContactStartView: View {
     
+    // MARK: - Properties
     @Binding var navPath: NavigationPath
     @State private var showingHowToPlay = false
     
-    // Add dismiss environment to return to Home
+    // Access the dismiss action to return to the previous Home/Root screen
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
         ZStack {
             // MARK: 1. Deep Space Background
+            // Consistent dark theme background
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
-            // Ambient Orbs
+            // MARK: Ambient Orbs
+            // Blurred circles to create a "space" atmosphere
             GeometryReader { geo in
                 Circle().fill(Color.teal.opacity(0.2)).frame(width: 300).blur(radius: 60).offset(x: -100, y: -100)
                 Circle().fill(Color.purple.opacity(0.2)).frame(width: 300).blur(radius: 60).offset(x: geo.size.width - 150, y: geo.size.height / 2)
@@ -22,7 +25,8 @@ struct ContactStartView: View {
             
             VStack(spacing: 40) {
                 
-                // MARK: 2. Navigation Header (Added Back Button)
+                // MARK: 2. Navigation Header
+                // Custom "Back" button to pop this view from the stack
                 HStack {
                     Button(action: {
                         dismiss()
@@ -42,39 +46,36 @@ struct ContactStartView: View {
                 Spacer()
                 
                 // MARK: 3. Hero Title
-                VStack(spacing: 10) {
-                    ZStack {
-                        Circle()
-                            .fill(LinearGradient(colors: [.blue.opacity(0.3), .clear], startPoint: .top, endPoint: .bottom))
-                            .frame(width: 180, height: 180)
-                            .blur(radius: 10)
-                        
-                        Image(systemName: "bubble.left.and.bubble.right.fill")
-                            .font(.system(size: 80))
-                            .foregroundStyle(LinearGradient(colors: [.cyan, .blue], startPoint: .top, endPoint: .bottom))
-                            .shadow(color: .blue, radius: 10)
-                    }
+                // Large "Contact" logo with stylistic shadows and fonts
+                VStack(spacing: 15) {
+                    Image(systemName: "waveform.path.ecg")
+                        .font(.system(size: 80))
+                        .foregroundColor(.teal)
+                        .shadow(color: .purple, radius: 20)
                     
                     Text("CONTACT")
-                        .font(.system(size: 48, weight: .black, design: .rounded))
-                        .foregroundColor(.white)
-                        .shadow(color: .blue.opacity(0.5), radius: 10)
+                        .font(.system(size: 64, weight: .black, design: .rounded))
+                        .foregroundStyle(
+                            LinearGradient(colors: [.teal, .purple], startPoint: .leading, endPoint: .trailing)
+                        )
+                        .shadow(color: .teal.opacity(0.5), radius: 10)
                     
-                    Text("Word Defender Protocol")
-                        .font(.system(size: 14, weight: .bold, design: .monospaced))
-                        .foregroundColor(.teal)
-                        .tracking(2)
+                    Text("WORD DEFENSE")
+                        .font(.system(size: 16, weight: .bold, design: .monospaced))
+                        .tracking(6)
+                        .foregroundColor(.white.opacity(0.8))
                 }
                 
                 Spacer()
                 
                 // MARK: 4. Action Buttons
                 VStack(spacing: 20) {
-                    // Start Game
+                    
+                    // Start Game Button -> Navigates to Setup
                     Button(action: {
                         navPath.append(GameNavigation.contactWordSetup)
                     }) {
-                        Text("INITIATE GAME")
+                        Text("INITIATE PROTOCOL")
                             .font(.system(size: 20, weight: .heavy, design: .rounded))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 18)
@@ -89,9 +90,9 @@ struct ContactStartView: View {
                             .foregroundColor(.white)
                             .shadow(color: .teal.opacity(0.5), radius: 10, y: 5)
                     }
-                    .buttonStyle(BouncyGameButtonStyle())
+                    .buttonStyle(BouncyGameButtonStyle()) // Helper style for press animation
                     
-                    // How to Play
+                    // How to Play Button -> Opens Modal Sheet
                     Button(action: {
                         showingHowToPlay = true
                     }) {
@@ -122,5 +123,3 @@ struct ContactStartView: View {
         }
     }
 }
-
-
