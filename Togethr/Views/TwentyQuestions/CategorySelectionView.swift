@@ -19,17 +19,36 @@ struct CategorySelectionView: View {
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
             VStack(spacing: 20) {
+                // Navigation Header (Added Back Button)
+                HStack {
+                    Button(action: {
+                        // Go back to Start View
+                        navPath = NavigationPath()
+                    }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "chevron.left")
+                            Text("Back")
+                        }
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundColor(.white.opacity(0.7))
+                        .padding(.leading, 20)
+                    }
+                    Spacer()
+                }
+                .padding(.top, 10)
+
                 // Header
-                Text("MISSION PARAMETERS")
-                    .font(.system(size: 14, weight: .bold, design: .monospaced))
-                    .foregroundColor(.teal)
-                    .tracking(2)
-                    .padding(.top, 20)
-                
-                Text("Select Category")
-                    .font(.system(size: 32, weight: .black, design: .rounded))
-                    .foregroundColor(.white)
-                    .shadow(color: .purple, radius: 10)
+                VStack(spacing: 5) {
+                    Text("MISSION PARAMETERS")
+                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                        .foregroundColor(.teal)
+                        .tracking(2)
+                    
+                    Text("Select Category")
+                        .font(.system(size: 32, weight: .black, design: .rounded))
+                        .foregroundColor(.white)
+                        .shadow(color: .purple, radius: 10)
+                }
 
                 ScrollView {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 20)], spacing: 20) {
@@ -68,14 +87,6 @@ struct CategorySelectionView: View {
                 }
             }
         }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-    }
-}
-
-struct CategorySelectionView_Previews: PreviewProvider {
-    static var previews: some View {
-        CategorySelectionView(navPath: .constant(NavigationPath()))
+        .navigationBarHidden(true)
     }
 }

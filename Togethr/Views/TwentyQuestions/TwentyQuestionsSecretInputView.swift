@@ -14,6 +14,24 @@ struct TwentyQuestionsSecretInputView: View {
             
             VStack(spacing: 30) {
                 
+                // Navigation Header (Back Button)
+                HStack {
+                    Button(action: {
+                        // Go back to Category Selection
+                        if !navPath.isEmpty { navPath.removeLast() }
+                    }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "chevron.left")
+                            Text("Back")
+                        }
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundColor(.white.opacity(0.7))
+                        .padding(.leading, 20)
+                    }
+                    Spacer()
+                }
+                .padding(.top, 10)
+                
                 VStack(spacing: 10) {
                     Text("SECRET TARGET")
                         .font(.system(size: 14, weight: .bold, design: .monospaced))
@@ -24,7 +42,6 @@ struct TwentyQuestionsSecretInputView: View {
                         .font(.system(size: 32, weight: .black, design: .rounded))
                         .foregroundColor(.white)
                 }
-                .padding(.top, 40)
                 
                 // Custom Input Field
                 VStack(alignment: .leading, spacing: 10) {
@@ -34,6 +51,7 @@ struct TwentyQuestionsSecretInputView: View {
                         .padding(.leading, 5)
                     
                     TextField("", text: $textInput)
+                        // This uses the extension defined at the bottom of the file
                         .placeholder(when: textInput.isEmpty) {
                             Text("e.g. Dolphin").foregroundColor(.gray.opacity(0.5))
                         }
@@ -86,12 +104,12 @@ struct TwentyQuestionsSecretInputView: View {
         .onAppear {
             isFocused = true
         }
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
+        .navigationBarHidden(true)
     }
 }
 
-// Helper extension for placeholder color
+// MARK: - Helper Extension for Custom Placeholder
+// This extension fixes the "Value of type 'TextField<Text>' has no member 'placeholder'" error
 extension View {
     func placeholder<Content: View>(
         when shouldShow: Bool,

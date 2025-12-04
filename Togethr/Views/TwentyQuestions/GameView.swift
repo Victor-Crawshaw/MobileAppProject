@@ -15,7 +15,7 @@ struct GameView: View {
     @State private var showingQuestionLog = false
     
     // UI State
-    @FocusState private var isInputActive: Bool // New: To manage keyboard focus
+    @FocusState private var isInputActive: Bool
     
     var body: some View {
         ZStack {
@@ -29,7 +29,7 @@ struct GameView: View {
                     isInputActive = false
                 }
             
-            // Ambient Glow (Star/Nebula effect)
+            // Ambient Glow
             GeometryReader { geo in
                 Circle()
                     .fill(Color.purple.opacity(0.15))
@@ -42,11 +42,11 @@ struct GameView: View {
                 
                 // MARK: 2. HUD Header
                 HStack {
-                    // Back/Abort Button
+                    // Abort Button (Back to Home)
                     Button(action: { navPath = NavigationPath() }) {
                         HStack(spacing: 5) {
                             Image(systemName: "xmark.circle.fill")
-                            Text("ABORT")
+                            Text("ABORT GAME")
                         }
                         .font(.system(size: 12, weight: .bold, design: .monospaced))
                         .foregroundColor(.red.opacity(0.8))
@@ -70,7 +70,7 @@ struct GameView: View {
                 
                 Spacer()
                 
-                // MARK: 3. Question Counter (Scoreboard)
+                // MARK: 3. Question Counter
                 VStack(spacing: 0) {
                     Text("QUESTION UPLINK")
                         .font(.system(size: 12, weight: .bold, design: .monospaced))
@@ -85,7 +85,7 @@ struct GameView: View {
                         .shadow(color: .teal.opacity(0.6), radius: 15, x: 0, y: 0)
                 }
                 
-                // MARK: 4. The "Comms" Box (Transcription)
+                // MARK: 4. The "Comms" Box (Input Area)
                 VStack(spacing: 15) {
                     ZStack {
                         // Glass Background
@@ -99,6 +99,10 @@ struct GameView: View {
                                     )
                             )
                             .shadow(color: .black.opacity(0.5), radius: 20, x: 0, y: 10)
+                            // Make the whole box tap-to-type
+                            .onTapGesture {
+                                isInputActive = true
+                            }
                         
                         VStack {
                             if speechRecognizer.isRecording {
@@ -117,42 +121,27 @@ struct GameView: View {
                                     .multilineTextAlignment(.center)
                                 
                             } else {
-                                if currentQuestionText.isEmpty && !isInputActive {
-                                    // Idle State
-                                    VStack(spacing: 8) {
-                                        Image(systemName: "waveform")
-                                            .foregroundColor(.white.opacity(0.2))
-                                            .font(.title)
-                                        Text("Tap MIC to transmit query")
-                                            .font(.system(size: 14, weight: .medium, design: .monospaced))
-                                            .foregroundColor(.white.opacity(0.4))
-                                    }
-                                } else {
-                                    // Result State (Editable)
-                                    VStack(spacing: 5) {
-                                        TextField("Type Question...", text: $currentQuestionText, axis: .vertical)
-                                            .font(.system(size: 22, weight: .bold, design: .rounded))
-                                            .foregroundColor(.white)
-                                            .multilineTextAlignment(.center)
-                                            .submitLabel(.done)
-                                            .focused($isInputActive)
-                                            .onChange(of: currentQuestionText) { newValue in
-                                                // Ensure we are in "answering mode" if the user types manually
-                                                if !newValue.isEmpty {
-                                                    questionAwaitingAnswer = true
-                                                }
+                                // Text Input Mode
+                                VStack(spacing: 5) {
+                                    TextField("Type or Record Question...", text: $currentQuestionText, axis: .vertical)
+                                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                                        .foregroundColor(.white)
+                                        .multilineTextAlignment(.center)
+                                        .submitLabel(.done)
+                                        .focused($isInputActive)
+                                        .onChange(of: currentQuestionText) { newValue in
+                                            // Ensure we are in "answering mode" if the user types manually
+                                            if !newValue.isEmpty {
+                                                questionAwaitingAnswer = true
                                             }
-                                        
-                                        // Edit hint
-                                        if !isInputActive {
-                                            HStack(spacing: 4) {
-                                                Image(systemName: "pencil")
-                                                Text("Tap text to edit")
-                                            }
+                                        }
+                                    
+                                    // Hint (only if empty)
+                                    if currentQuestionText.isEmpty && !isInputActive {
+                                        Text("Tap here to type manually")
                                             .font(.caption)
                                             .foregroundColor(.white.opacity(0.3))
                                             .padding(.top, 5)
-                                        }
                                     }
                                 }
                             }
@@ -161,50 +150,59 @@ struct GameView: View {
                     }
                     .frame(minHeight: 140)
                     
-                    // MARK: 5. Logic Button (Record / Stop / Re-Record)
-                    if speechRecognizer.isRecording {
-                        Button(action: {
-                            speechRecognizer.stopTranscribing()
-                        }) {
-                            Label("STOP TRANSMISSION", systemImage: "stop.fill")
-                                .font(.system(size: 16, weight: .black, design: .rounded))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 18)
-                                .background(Color.red.opacity(0.2))
-                                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.red, lineWidth: 2))
-                                .foregroundColor(.red)
-                                .shadow(color: .red.opacity(0.4), radius: 10)
-                        }
-                        .cornerRadius(16)
-                    } else {
-                        // This handles both Start and Re-record based on state
-                        Button(action: {
-                            if questionAwaitingAnswer {
-                                resetCurrentQuestion()
-                            } else {
-                                speechRecognizer.startTranscribing()
-                            }
-                        }) {
-                            if questionAwaitingAnswer {
-                                Label("RE-RECORD", systemImage: "arrow.clockwise")
-                                    .font(.system(size: 16, weight: .bold, design: .monospaced))
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 18)
-                                    .background(Color.orange.opacity(0.2))
-                                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.orange, lineWidth: 2))
-                                    .foregroundColor(.orange)
-                            } else {
-                                Label("INITIATE RECORDING", systemImage: "mic.fill")
+                    // MARK: 5. Input Controls (Mic & Keyboard)
+                    HStack(spacing: 15) {
+                        
+                        if speechRecognizer.isRecording {
+                            // Stop Button
+                            Button(action: {
+                                speechRecognizer.stopTranscribing()
+                            }) {
+                                Label("STOP", systemImage: "stop.fill")
                                     .font(.system(size: 16, weight: .black, design: .rounded))
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 18)
-                                    .background(Color.teal.opacity(0.2))
-                                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.teal, lineWidth: 2))
-                                    .foregroundColor(.teal)
-                                    .shadow(color: .teal.opacity(0.4), radius: 10)
+                                    .background(Color.red.opacity(0.2))
+                                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.red, lineWidth: 2))
+                                    .foregroundColor(.red)
                             }
+                        } else {
+                            // Record Button
+                            Button(action: {
+                                if questionAwaitingAnswer {
+                                    resetCurrentQuestion()
+                                } else {
+                                    speechRecognizer.startTranscribing()
+                                }
+                            }) {
+                                Image(systemName: questionAwaitingAnswer ? "arrow.clockwise" : "mic.fill")
+                                    .font(.system(size: 24))
+                                    .frame(width: 80, height: 60)
+                                    .background(questionAwaitingAnswer ? Color.orange.opacity(0.2) : Color.teal.opacity(0.2))
+                                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(questionAwaitingAnswer ? Color.orange : Color.teal, lineWidth: 2))
+                                    .foregroundColor(questionAwaitingAnswer ? .orange : .teal)
+                            }
+                            .cornerRadius(16)
+                            
+                            // Keyboard / Type Button (Manual Bypass)
+                            Button(action: {
+                                isInputActive = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "keyboard.fill")
+                                    Text("TYPE QUESTION")
+                                }
+                                .font(.system(size: 16, weight: .bold, design: .rounded))
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 60)
+                                .background(Color.blue.opacity(0.2))
+                                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.blue, lineWidth: 2))
+                                .foregroundColor(.blue)
+                            }
+                            .cornerRadius(16)
+                            .opacity(questionAwaitingAnswer ? 0.5 : 1.0) // Dim if already waiting for answer
+                            .disabled(questionAwaitingAnswer)
                         }
-                        .cornerRadius(16)
                     }
                 }
                 .padding(.horizontal)
@@ -218,7 +216,6 @@ struct GameView: View {
                             .font(.system(size: 20, weight: .heavy, design: .rounded))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 18)
-                            // Visual disable state
                             .background(questionAwaitingAnswer ? Color.green.opacity(0.2) : Color.white.opacity(0.05))
                             .overlay(RoundedRectangle(cornerRadius: 16).stroke(questionAwaitingAnswer ? Color.green : Color.white.opacity(0.1), lineWidth: 2))
                             .foregroundColor(questionAwaitingAnswer ? .green : .white.opacity(0.2))
@@ -231,7 +228,6 @@ struct GameView: View {
                             .font(.system(size: 20, weight: .heavy, design: .rounded))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 18)
-                            // Visual disable state
                             .background(questionAwaitingAnswer ? Color.red.opacity(0.2) : Color.white.opacity(0.05))
                             .overlay(RoundedRectangle(cornerRadius: 16).stroke(questionAwaitingAnswer ? Color.red : Color.white.opacity(0.1), lineWidth: 2))
                             .foregroundColor(questionAwaitingAnswer ? .red : .white.opacity(0.2))
@@ -243,13 +239,40 @@ struct GameView: View {
                 
                 Spacer()
                 
-                // MARK: 7. Log & Win Buttons
+                // MARK: 7. Log, Undo & Win Buttons
                 VStack(spacing: 12) {
-                    if !questionLog.isEmpty {
+                    
+                    HStack(spacing: 10) {
+                        // LOG BUTTON (Updated UI)
                         Button(action: { showingQuestionLog = true }) {
-                            Text("ACCESS MISSION LOG (\(questionLog.count))")
-                                .font(.system(size: 12, weight: .bold, design: .monospaced))
-                                .foregroundColor(.teal)
+                            HStack {
+                                Image(systemName: "list.bullet.clipboard")
+                                Text("QUESTION LOG (\(questionLog.count))")
+                            }
+                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 16)
+                            .background(Color.white.opacity(0.1))
+                            .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
+                            .foregroundColor(.white)
+                            .clipShape(Capsule())
+                        }
+                        
+                        // UNDO BUTTON (New)
+                        if !questionLog.isEmpty {
+                            Button(action: { undoLastLog() }) {
+                                HStack {
+                                    Image(systemName: "arrow.uturn.backward")
+                                    Text("UNDO")
+                                }
+                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 16)
+                                .background(Color.red.opacity(0.1))
+                                .overlay(Capsule().stroke(Color.red.opacity(0.5), lineWidth: 1))
+                                .foregroundColor(.red)
+                                .clipShape(Capsule())
+                            }
                         }
                     }
                     
@@ -276,7 +299,7 @@ struct GameView: View {
                 .padding(.bottom, 20)
             }
         }
-        .navigationBarBackButtonHidden(false)
+        .navigationBarBackButtonHidden(true) // We are handling back manually via Abort
         .onAppear {
             speechRecognizer.requestAuthorization()
         }
@@ -300,17 +323,21 @@ struct GameView: View {
         isInputActive = false
     }
     
+    func undoLastLog() {
+        guard !questionLog.isEmpty else { return }
+        // Remove the last item
+        questionLog.removeLast()
+        // Ensure we aren't in a stuck state
+        resetCurrentQuestion()
+    }
+    
     func logAnswer(answer: Answer) {
-        // Dismiss keyboard if open
         isInputActive = false
         
         let newLogEntry = RecordedQuestion(questionText: currentQuestionText, answer: answer)
         questionLog.append(newLogEntry)
         
-        // Reset using the specific reset logic
-        currentQuestionText = ""
-        speechRecognizer.resetTranscript()
-        questionAwaitingAnswer = false
+        resetCurrentQuestion()
         
         if questionLog.count >= 20 {
             navPath.append(GameNavigation.twentyQuestionsResult(
@@ -335,7 +362,7 @@ struct StyledQuestionLogSheetView: View {
             VStack(spacing: 20) {
                 HStack {
                     Spacer()
-                    Text("MISSION LOG")
+                    Text("QUESTION LOG") // Renamed from Mission Log
                         .font(.system(size: 16, weight: .bold, design: .monospaced))
                         .foregroundColor(.white)
                         .tracking(2)
@@ -369,7 +396,8 @@ struct StyledQuestionLogSheetView: View {
                                 Text(log.questionText)
                                     .font(.system(.body, design: .rounded))
                                     .foregroundColor(.white)
-                                Text("OUTCOME: \(log.answer.rawValue.uppercased())")
+                                // Changed "Outcome" to "Answer"
+                                Text("ANSWER: \(log.answer.rawValue.uppercased())")
                                     .font(.system(.caption, design: .monospaced))
                                     .foregroundColor(log.answer == .yes ? .green : .red)
                             }
@@ -392,19 +420,6 @@ struct StyledQuestionLogSheetView: View {
                 }
                 .padding()
             }
-        }
-    }
-}
-
-// Preview
-struct GameView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationStack {
-            GameView(
-                navPath: .constant(NavigationPath()),
-                category: "Animals",
-                secretWord: "Sloth"
-            )
         }
     }
 }
