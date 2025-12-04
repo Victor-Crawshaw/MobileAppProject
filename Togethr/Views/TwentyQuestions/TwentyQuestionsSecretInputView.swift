@@ -2,10 +2,13 @@ import SwiftUI
 
 struct TwentyQuestionsSecretInputView: View {
     
+    // MARK: - Properties
     @Binding var navPath: NavigationPath
     let category: String
+    
+    // Input State
     @State private var textInput: String = ""
-    @FocusState private var isFocused: Bool
+    @FocusState private var isFocused: Bool // Controls keyboard visibility
     
     var body: some View {
         ZStack {
@@ -14,7 +17,7 @@ struct TwentyQuestionsSecretInputView: View {
             
             VStack(spacing: 30) {
                 
-                // Navigation Header (Back Button)
+                // MARK: Navigation Header
                 HStack {
                     Button(action: {
                         // Go back to Category Selection
@@ -32,6 +35,7 @@ struct TwentyQuestionsSecretInputView: View {
                 }
                 .padding(.top, 10)
                 
+                // Instructions
                 VStack(spacing: 10) {
                     Text("SECRET TARGET")
                         .font(.system(size: 14, weight: .bold, design: .monospaced))
@@ -43,15 +47,15 @@ struct TwentyQuestionsSecretInputView: View {
                         .foregroundColor(.white)
                 }
                 
-                // Custom Input Field
+                // MARK: Custom Input Field
                 VStack(alignment: .leading, spacing: 10) {
-                    Text(String(category.dropLast(1))) // "Animals" -> "Animal"
+                    Text(String(category.dropLast(1))) // Simple plural-to-singular logic: "Animals" -> "Animal"
                         .font(.caption)
                         .foregroundColor(.gray)
                         .padding(.leading, 5)
                     
                     TextField("", text: $textInput)
-                        // This uses the extension defined at the bottom of the file
+                        // Uses the custom extension below for colored placeholders
                         .placeholder(when: textInput.isEmpty) {
                             Text("e.g. Dolphin").foregroundColor(.gray.opacity(0.5))
                         }
@@ -62,6 +66,7 @@ struct TwentyQuestionsSecretInputView: View {
                             RoundedRectangle(cornerRadius: 15)
                                 .fill(Color.black.opacity(0.3))
                                 .overlay(
+                                    // Highlights border when typing
                                     RoundedRectangle(cornerRadius: 15)
                                         .stroke(isFocused ? Color.teal : Color.white.opacity(0.1), lineWidth: 2)
                                 )
@@ -73,9 +78,10 @@ struct TwentyQuestionsSecretInputView: View {
                 
                 Spacer()
                 
-                // Confirm Button
+                // MARK: Confirm Button
                 Button(action: {
                     if !textInput.isEmpty {
+                        // Move to Confirmation Screen
                         navPath.append(GameNavigation.twentyQuestionsConfirm(
                             category: category,
                             secretWord: textInput
@@ -90,26 +96,27 @@ struct TwentyQuestionsSecretInputView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 18)
                     .background(
+                        // Conditional coloring based on input validity
                         RoundedRectangle(cornerRadius: 16)
                             .fill(textInput.isEmpty ? Color.gray.opacity(0.3) : Color.purple)
                     )
                     .foregroundColor(textInput.isEmpty ? .white.opacity(0.3) : .white)
                     .shadow(color: textInput.isEmpty ? .clear : .purple.opacity(0.5), radius: 10, y: 5)
                 }
-                .disabled(textInput.isEmpty)
+                .disabled(textInput.isEmpty) // Prevent empty submissions
                 .padding(.horizontal, 40)
                 .padding(.bottom, 20) // Push up from keyboard
             }
         }
         .onAppear {
-            isFocused = true
+            isFocused = true // Auto-focus the text field
         }
         .navigationBarHidden(true)
     }
 }
 
 // MARK: - Helper Extension for Custom Placeholder
-// This extension fixes the "Value of type 'TextField<Text>' has no member 'placeholder'" error
+// This extension allows for a custom View (Text with color) to be used as a placeholder
 extension View {
     func placeholder<Content: View>(
         when shouldShow: Bool,

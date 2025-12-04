@@ -4,6 +4,7 @@ struct CategorySelectionView: View {
     
     @Binding var navPath: NavigationPath
     
+    // Pre-defined list of categories with Emojis
     let categories = [
         "Animals 🦁",
         "Food 🍔",
@@ -15,14 +16,14 @@ struct CategorySelectionView: View {
 
     var body: some View {
         ZStack {
-            // Background
+            // Background Color
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
             VStack(spacing: 20) {
-                // Navigation Header (Added Back Button)
+                // MARK: Navigation Header
                 HStack {
                     Button(action: {
-                        // Go back to Start View
+                        // Go back to Start View by resetting the path completely
                         navPath = NavigationPath()
                     }) {
                         HStack(spacing: 5) {
@@ -37,7 +38,7 @@ struct CategorySelectionView: View {
                 }
                 .padding(.top, 10)
 
-                // Header
+                // MARK: Page Title
                 VStack(spacing: 5) {
                     Text("MISSION PARAMETERS")
                         .font(.system(size: 14, weight: .bold, design: .monospaced))
@@ -50,20 +51,23 @@ struct CategorySelectionView: View {
                         .shadow(color: .purple, radius: 10)
                 }
 
+                // MARK: Category Grid
                 ScrollView {
+                    // Adaptive grid layout
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 20)], spacing: 20) {
                         ForEach(categories, id: \.self) { category in
                             Button(action: {
+                                // Navigate to Input View with selected category
                                 navPath.append(GameNavigation.twentyQuestionsSecretInput(category: category))
                             }) {
                                 VStack(spacing: 10) {
-                                    // Extract Emoji
+                                    // Parse string to separate Emoji from Text
                                     if let emoji = category.split(separator: " ").last {
                                         Text(String(emoji))
                                             .font(.system(size: 50))
                                     }
                                     
-                                    // Extract Name
+                                    // Extract Name (remove emoji + space)
                                     Text(category.dropLast(2))
                                         .font(.system(size: 16, weight: .bold, design: .rounded))
                                         .foregroundColor(.white)
@@ -75,6 +79,7 @@ struct CategorySelectionView: View {
                                         .fill(Color(red: 0.1, green: 0.1, blue: 0.12))
                                 )
                                 .overlay(
+                                    // Gradient Border
                                     RoundedRectangle(cornerRadius: 20)
                                         .stroke(LinearGradient(colors: [.teal.opacity(0.5), .purple.opacity(0.5)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 2)
                                 )

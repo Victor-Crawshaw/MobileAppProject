@@ -2,19 +2,21 @@
 import SwiftUI
 
 struct HowToPlayView: View {
-    // Access dismiss action to close the sheet
+    // Access dismiss action to close the sheet/modal
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
         VStack(alignment: .leading, spacing: 25) {
             
-            // Title
+            // MARK: Header
             Text("How to Play")
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .frame(maxWidth: .infinity, alignment: .center)
 
-            // 1. The Knower
+            // MARK: Instructions List
+            
+            // 1. The Knower Role
             VStack(alignment: .leading, spacing: 5) {
                 Text("1. The Knower")
                     .font(.title3)
@@ -23,7 +25,7 @@ struct HowToPlayView: View {
                     .foregroundColor(.secondary)
             }
             
-            // 2. The Guessers
+            // 2. The Guessers Role
             VStack(alignment: .leading, spacing: 5) {
                 Text("2. The Guessers")
                     .font(.title3)
@@ -32,7 +34,7 @@ struct HowToPlayView: View {
                     .foregroundColor(.secondary)
             }
 
-            // 3. The Count (MODIFIED)
+            // 3. The Gameplay Loop (Logging)
             VStack(alignment: .leading, spacing: 5) {
                 Text("3. The Log")
                     .font(.title3)
@@ -41,7 +43,7 @@ struct HowToPlayView: View {
                     .foregroundColor(.secondary)
             }
             
-            // 4. The Win
+            // 4. Winning Condition
             VStack(alignment: .leading, spacing: 5) {
                 Text("4. The Win")
                     .font(.title3)
@@ -52,7 +54,7 @@ struct HowToPlayView: View {
 
             Spacer()
             
-            // Got It! button to dismiss the sheet
+            // MARK: Dismiss Button
             Button(action: {
                 dismiss() // Close the sheet
             }) {

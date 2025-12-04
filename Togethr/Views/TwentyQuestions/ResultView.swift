@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ResultView: View {
     
+    // MARK: - Properties
     @Binding var navPath: NavigationPath
     
     let didWin: Bool
@@ -11,17 +12,19 @@ struct ResultView: View {
     
     var body: some View {
         ZStack {
+            // Background
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
             VStack(spacing: 30) {
                 Spacer()
                 
-                // Icon
+                // MARK: Victory/Defeat Icon
                 Image(systemName: didWin ? "trophy.fill" : "xmark.octagon.fill")
                     .font(.system(size: 100))
                     .foregroundColor(didWin ? .yellow : .red)
                     .shadow(color: didWin ? .orange : .red.opacity(0.5), radius: 20)
                 
+                // Main Text Logic
                 VStack(spacing: 5) {
                     Text(didWin ? "VICTORY" : "GAME OVER")
                         .font(.system(size: 48, weight: .black, design: .rounded))
@@ -32,6 +35,7 @@ struct ResultView: View {
                         .foregroundColor(.gray)
                 }
                 
+                // MARK: Reveal Secret
                 VStack(spacing: 10) {
                     Text("SECRET WORD")
                         .font(.caption)
@@ -50,9 +54,10 @@ struct ResultView: View {
                 
                 Spacer()
                 
+                // MARK: Navigation Footer
                 VStack(spacing: 15) {
                     Button(action: {
-                        // Reset to root
+                        // Reset to root (empty path)
                         navPath = NavigationPath()
                     }) {
                         Text("BACK TO MENU")

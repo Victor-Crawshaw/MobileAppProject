@@ -5,7 +5,7 @@ struct TwentyQuestionsStartView: View {
     @Binding var navPath: NavigationPath
     @State private var showingHowToPlay = false
     
-    // Add dismiss environment to handle "Back" to Home Page
+    // Add dismiss environment to handle "Back" to a previous Home Page/Root
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -13,7 +13,7 @@ struct TwentyQuestionsStartView: View {
             // MARK: 1. Gamey Background
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
-            // Ambient Orbs
+            // Ambient Orbs (Blurred circles for atmosphere)
             GeometryReader { geo in
                 Circle().fill(Color.teal.opacity(0.2)).frame(width: 300).blur(radius: 60).offset(x: -100, y: -100)
                 Circle().fill(Color.purple.opacity(0.2)).frame(width: 300).blur(radius: 60).offset(x: geo.size.width - 150, y: geo.size.height / 2)
@@ -41,6 +41,7 @@ struct TwentyQuestionsStartView: View {
                 Spacer()
                 
                 // MARK: 3. Hero Logo
+                // Composed of stacked text and gradients
                 ZStack {
                     Circle()
                         .fill(LinearGradient(colors: [.purple.opacity(0.3), .clear], startPoint: .top, endPoint: .bottom))
@@ -68,6 +69,7 @@ struct TwentyQuestionsStartView: View {
                 
                 // MARK: 4. Action Buttons
                 VStack(spacing: 20) {
+                    // Start Game -> Navigates to Category Select
                     Button(action: {
                         navPath.append(GameNavigation.twentyQuestionsCategory)
                     }) {
@@ -88,6 +90,7 @@ struct TwentyQuestionsStartView: View {
                     }
                     .buttonStyle(BouncyScaleButtonStyle())
                     
+                    // How To Play -> Opens Sheet
                     Button(action: {
                         showingHowToPlay = true
                     }) {
@@ -120,7 +123,8 @@ struct TwentyQuestionsStartView: View {
     }
 }
 
-// Helper Style
+// MARK: - Helper Style
+// Provides a spring animation when buttons are pressed
 struct BouncyScaleButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label

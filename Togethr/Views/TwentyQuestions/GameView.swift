@@ -3,19 +3,20 @@ import Speech
 
 struct GameView: View {
     
+    // MARK: - Properties
     @Binding var navPath: NavigationPath
     let category: String
     let secretWord: String
     
     // Logic State
-    @StateObject private var speechRecognizer = SpeechRecognizer()
-    @State private var questionLog: [RecordedQuestion] = []
-    @State private var currentQuestionText: String = ""
-    @State private var questionAwaitingAnswer: Bool = false
+    @StateObject private var speechRecognizer = SpeechRecognizer() // Helper class for STT
+    @State private var questionLog: [RecordedQuestion] = [] // History of Q&A
+    @State private var currentQuestionText: String = "" // Current input
+    @State private var questionAwaitingAnswer: Bool = false // Toggle between Input Mode and Answer Mode
     @State private var showingQuestionLog = false
     
     // UI State
-    @FocusState private var isInputActive: Bool
+    @FocusState private var isInputActive: Bool // Keyboard focus state
     
     var body: some View {
         ZStack {
@@ -42,7 +43,7 @@ struct GameView: View {
                 
                 // MARK: 2. HUD Header
                 HStack {
-                    // Abort Button (Back to Home)
+                    // Abort Button (Resets stack)
                     Button(action: { navPath = NavigationPath() }) {
                         HStack(spacing: 5) {
                             Image(systemName: "xmark.circle.fill")
@@ -71,6 +72,7 @@ struct GameView: View {
                 Spacer()
                 
                 // MARK: 3. Question Counter
+                // Big number display showing current question index (1-20)
                 VStack(spacing: 0) {
                     Text("QUESTION UPLINK")
                         .font(.system(size: 12, weight: .bold, design: .monospaced))
@@ -86,9 +88,10 @@ struct GameView: View {
                 }
                 
                 // MARK: 4. The "Comms" Box (Input Area)
+                // Displays either the Speech Transcription or Text Field
                 VStack(spacing: 15) {
                     ZStack {
-                        // Glass Background
+                        // Glass Background Style
                         RoundedRectangle(cornerRadius: 24)
                             .fill(Color(red: 0.1, green: 0.1, blue: 0.15).opacity(0.9))
                             .overlay(
@@ -106,7 +109,7 @@ struct GameView: View {
                         
                         VStack {
                             if speechRecognizer.isRecording {
-                                // Recording Animation
+                                // Recording Animation State
                                 HStack(spacing: 8) {
                                     Circle().fill(Color.red).frame(width: 10, height: 10).opacity(0.8)
                                     Text("RECEIVING TRANSMISSION...")
@@ -121,7 +124,7 @@ struct GameView: View {
                                     .multilineTextAlignment(.center)
                                 
                             } else {
-                                // Text Input Mode
+                                // Manual Text Input Mode
                                 VStack(spacing: 5) {
                                     TextField("Type or Record Question...", text: $currentQuestionText, axis: .vertical)
                                         .font(.system(size: 22, weight: .bold, design: .rounded))
@@ -136,7 +139,7 @@ struct GameView: View {
                                             }
                                         }
                                     
-                                    // Hint (only if empty)
+                                    // Hint (only if empty and not typing)
                                     if currentQuestionText.isEmpty && !isInputActive {
                                         Text("Tap here to type manually")
                                             .font(.caption)
@@ -210,6 +213,7 @@ struct GameView: View {
                 Spacer()
                 
                 // MARK: 6. Yes/No Buttons
+                // Enabled only when a question is pending
                 HStack(spacing: 20) {
                     Button(action: { logAnswer(answer: .yes) }) {
                         Text("YES")
@@ -243,7 +247,7 @@ struct GameView: View {
                 VStack(spacing: 12) {
                     
                     HStack(spacing: 10) {
-                        // LOG BUTTON (Updated UI)
+                        // LOG BUTTON (Shows history)
                         Button(action: { showingQuestionLog = true }) {
                             HStack {
                                 Image(systemName: "list.bullet.clipboard")
@@ -258,7 +262,7 @@ struct GameView: View {
                             .clipShape(Capsule())
                         }
                         
-                        // UNDO BUTTON (New)
+                        // UNDO BUTTON (Removes last entry)
                         if !questionLog.isEmpty {
                             Button(action: { undoLastLog() }) {
                                 HStack {
@@ -276,6 +280,7 @@ struct GameView: View {
                         }
                     }
                     
+                    // WIN BUTTON (Manually triggered by Knower)
                     Button(action: {
                         navPath.append(GameNavigation.twentyQuestionsResult(
                             didWin: true,
@@ -303,6 +308,7 @@ struct GameView: View {
         .onAppear {
             speechRecognizer.requestAuthorization()
         }
+        // Auto-switch to "Answering Mode" when speech recording finishes
         .onChange(of: speechRecognizer.isRecording) { isRecording in
             if !isRecording && !speechRecognizer.transcript.isEmpty {
                 self.currentQuestionText = speechRecognizer.transcript
@@ -314,8 +320,9 @@ struct GameView: View {
         }
     }
     
-    // --- FUNCTIONS ---
+    // MARK: - Logic Functions
     
+    // Clears input and resets controls for next turn
     func resetCurrentQuestion() {
         currentQuestionText = ""
         speechRecognizer.resetTranscript()
@@ -323,6 +330,7 @@ struct GameView: View {
         isInputActive = false
     }
     
+    // Removes the most recent question/answer pair
     func undoLastLog() {
         guard !questionLog.isEmpty else { return }
         // Remove the last item
@@ -331,6 +339,7 @@ struct GameView: View {
         resetCurrentQuestion()
     }
     
+    // Records the answer and checks for Game Over (Loss)
     func logAnswer(answer: Answer) {
         isInputActive = false
         
@@ -339,6 +348,7 @@ struct GameView: View {
         
         resetCurrentQuestion()
         
+        // If 20 questions reached, trigger loss
         if questionLog.count >= 20 {
             navPath.append(GameNavigation.twentyQuestionsResult(
                 didWin: false,
@@ -360,9 +370,10 @@ struct StyledQuestionLogSheetView: View {
             Color(red: 0.1, green: 0.1, blue: 0.12).ignoresSafeArea()
             
             VStack(spacing: 20) {
+                // Sheet Header
                 HStack {
                     Spacer()
-                    Text("QUESTION LOG") // Renamed from Mission Log
+                    Text("QUESTION LOG")
                         .font(.system(size: 16, weight: .bold, design: .monospaced))
                         .foregroundColor(.white)
                         .tracking(2)
@@ -378,6 +389,7 @@ struct StyledQuestionLogSheetView: View {
                 .padding(.top)
                 .padding(.horizontal)
                 
+                // List Content
                 if questionLog.isEmpty {
                     Spacer()
                     Text("NO DATA RECORDED")
@@ -387,11 +399,13 @@ struct StyledQuestionLogSheetView: View {
                 } else {
                     List(questionLog) { log in
                         HStack(alignment: .top) {
+                            // Status Icon (Check/X)
                             Image(systemName: log.answer == .yes ? "checkmark.circle" : "xmark.circle")
                                 .foregroundColor(log.answer == .yes ? .green : .red)
                                 .font(.headline)
                                 .padding(.top, 2)
                             
+                            // Question & Answer Text
                             VStack(alignment: .leading) {
                                 Text(log.questionText)
                                     .font(.system(.body, design: .rounded))
@@ -409,6 +423,7 @@ struct StyledQuestionLogSheetView: View {
                     .scrollContentBackground(.hidden)
                 }
                 
+                // Close Button
                 Button(action: { dismiss() }) {
                     Text("CLOSE LOG")
                         .font(.system(size: 14, weight: .bold, design: .monospaced))

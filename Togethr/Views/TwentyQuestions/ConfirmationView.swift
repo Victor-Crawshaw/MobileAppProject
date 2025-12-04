@@ -2,20 +2,23 @@ import SwiftUI
 
 struct ConfirmationView: View {
     
+    // MARK: - Properties
     @Binding var navPath: NavigationPath
     let category: String
     let secretWord: String
     
     var body: some View {
         ZStack {
+            // Dark Background
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
             VStack(spacing: 40) {
                 
-                // Navigation Header (Added Back Button)
+                // MARK: Navigation Header
+                // Contains a custom "Back" button to return to the input screen
                 HStack {
                     Button(action: {
-                        // Go back to Input View
+                        // Go back to Input View safely
                         if !navPath.isEmpty { navPath.removeLast() }
                     }) {
                         HStack(spacing: 5) {
@@ -32,13 +35,15 @@ struct ConfirmationView: View {
                 
                 Spacer()
                 
-                // Animated pulsing icon
+                // MARK: Visual Prompt
+                // Animated pulsing icon indicating device handover
                 Image(systemName: "iphone.gen3")
                     .font(.system(size: 100))
                     .foregroundColor(.white)
-                    .symbolEffect(.bounce, options: .repeating)
+                    .symbolEffect(.bounce, options: .repeating) // iOS 17+ Symbol Effect
                     .shadow(color: .teal, radius: 20)
 
+                // Instructional Text
                 VStack(spacing: 15) {
                     Text("HAND OFF DEVICE")
                         .font(.system(size: 16, weight: .bold, design: .monospaced))
@@ -54,6 +59,8 @@ struct ConfirmationView: View {
                 
                 Spacer()
                 
+                // MARK: Start Game Button
+                // This action officially pushes the GameView onto the stack
                 Button(action: {
                     navPath.append(GameNavigation.twentyQuestionsGame(
                         category: category,
@@ -75,7 +82,7 @@ struct ConfirmationView: View {
                         .foregroundColor(.white)
                         .shadow(color: .green.opacity(0.5), radius: 10, y: 5)
                 }
-                .buttonStyle(BouncyScaleButtonStyle())
+                .buttonStyle(BouncyScaleButtonStyle()) // Custom style for press animation
                 .padding(.horizontal, 40)
                 .padding(.bottom, 50)
             }
