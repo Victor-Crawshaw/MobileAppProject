@@ -11,6 +11,24 @@ struct HangmanConfirmationView: View {
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
             VStack(spacing: 40) {
+                
+                // Navigation Header (Back Button)
+                HStack {
+                    Button(action: {
+                        if !navPath.isEmpty { navPath.removeLast() }
+                    }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "chevron.left")
+                            Text("Back")
+                        }
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundColor(.white.opacity(0.7))
+                        .padding(.leading, 20)
+                    }
+                    Spacer()
+                }
+                .padding(.top, 10)
+                
                 Spacer()
                 
                 // Animated pulsing icon

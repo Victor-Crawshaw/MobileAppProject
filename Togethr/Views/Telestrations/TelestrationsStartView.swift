@@ -1,3 +1,4 @@
+// Views/Telestrations/TelestrationsStartView.swift
 import SwiftUI
 
 struct TelestrationsStartView: View {
@@ -16,6 +17,24 @@ struct TelestrationsStartView: View {
             }
             
             VStack(spacing: 40) {
+                
+                // Navigation Header (Back Button)
+                HStack {
+                    Button(action: {
+                        if !navPath.isEmpty { navPath.removeLast() }
+                    }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "chevron.left")
+                            Text("Main Menu")
+                        }
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundColor(.white.opacity(0.7))
+                        .padding(.leading, 20)
+                    }
+                    Spacer()
+                }
+                .padding(.top, 10)
+                
                 Spacer()
                 
                 // MARK: Hero Title

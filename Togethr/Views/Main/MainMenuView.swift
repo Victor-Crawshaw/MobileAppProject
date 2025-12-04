@@ -227,42 +227,44 @@ struct GameCardView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Emoji Container
+            // 1. Emoji Container
             HStack {
                 Text(game.emoji)
                     .font(.system(size: 45))
                     .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 5)
                 Spacer()
                 
-                // Little decorative icon
                 Image(systemName: "gamecontroller.fill")
                     .foregroundColor(.white.opacity(0.1))
                     .font(.title3)
             }
-            .padding(.bottom, 20)
+            .padding(.bottom, 10) // Reduced padding slightly
             
-            Spacer()
+            // 2. Flexible Spacer
+            // This allows the text to grow upwards into the empty space if needed
+            Spacer(minLength: 10)
             
-            // Text Content
-            Text(game.name.uppercased())
-                .font(.system(size: 16, weight: .heavy, design: .rounded))
-                .foregroundColor(.white)
-                .padding(.bottom, 4)
-            
-            Text(game.description)
-                .font(.system(size: 11, weight: .medium, design: .default))
-                .foregroundColor(.gray)
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
+            // 3. Text Content
+            VStack(alignment: .leading, spacing: 4) {
+                Text(game.name.uppercased())
+                    .font(.system(size: 16, weight: .heavy, design: .rounded))
+                    .foregroundColor(.white)
+                    // Ensure title doesn't get crushed by long descriptions
+                    .layoutPriority(1)
+                
+                Text(game.description)
+                    .font(.system(size: 11, weight: .medium, design: .default))
+                    .foregroundColor(.gray)
+                    .lineLimit(4) // Increased from 2 to 4
+                    .minimumScaleFactor(0.8) // Auto-shrinks font if text is too long
+                    .fixedSize(horizontal: false, vertical: true) // wraps text correctly
+            }
         }
         .padding(16)
-        .frame(height: 180)
+        .frame(height: 200) // Increased height slightly (180 -> 200) for better fit
         .background(
             ZStack {
-                // Card Background
                 Color(red: 0.1, green: 0.1, blue: 0.12)
-                
-                // Subtle Gradient Overlay
                 LinearGradient(
                     colors: [.white.opacity(0.05), .clear],
                     startPoint: .topLeading,
@@ -270,7 +272,6 @@ struct GameCardView: View {
                 )
             }
         )
-        // The "Border"
         .overlay(
             RoundedRectangle(cornerRadius: 20)
                 .stroke(

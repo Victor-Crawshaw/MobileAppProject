@@ -10,6 +10,25 @@ struct TelestrationsPassView: View {
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
             VStack(spacing: 40) {
+                
+                // Header (Abort Button)
+                HStack {
+                    Button(action: { navPath = NavigationPath() }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "xmark.circle.fill")
+                            Text("ABORT GAME")
+                        }
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .foregroundColor(.red.opacity(0.8))
+                        .padding(8)
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                    Spacer()
+                }
+                .padding(.top, 10)
+                .padding(.horizontal, 20)
+                
                 Spacer()
                 
                 // Animated pulsing icon

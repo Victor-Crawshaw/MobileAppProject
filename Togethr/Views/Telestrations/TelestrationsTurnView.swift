@@ -17,7 +17,7 @@ struct TelestrationsTurnView: View {
     @State private var selectedColor: Color = .black
     @State private var strokeWidth: Double = 5.0
     
-    // NEW: Eraser State
+    // Eraser State
     @State private var isEraserActive: Bool = false
     
     @FocusState private var isFocused: Bool
@@ -36,22 +36,39 @@ struct TelestrationsTurnView: View {
             // Background
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
-            VStack(spacing: 20) {
+            VStack(spacing: 15) {
                 // --- HEADER ---
                 HStack {
+                    // Abort Button
+                    Button(action: { navPath = NavigationPath() }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "xmark.circle.fill")
+                            Text("ABORT")
+                        }
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .foregroundColor(.red.opacity(0.8))
+                        .padding(8)
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                    
+                    Spacer()
+                    
+                    // Player Info
                     Text("PLAYER \(context.nextPlayerNumber)")
                         .font(.system(size: 14, weight: .bold, design: .monospaced))
                         .foregroundColor(.teal)
                         .padding(8)
                         .background(Color.teal.opacity(0.1))
                         .cornerRadius(8)
-                    Spacer()
-                    Text(isDrawingRound ? "MISSION: DRAW THIS" : "MISSION: GUESS THIS")
-                        .font(.system(size: 14, weight: .bold, design: .monospaced))
-                        .foregroundColor(.gray)
                 }
                 .padding(.horizontal)
-                .padding(.top, 40)
+                .padding(.top, 10)
+                
+                // Mission Text
+                Text(isDrawingRound ? "MISSION: DRAW THIS" : "MISSION: GUESS THIS")
+                    .font(.system(size: 14, weight: .bold, design: .monospaced))
+                    .foregroundColor(.gray)
                 
                 // --- THE PROMPT ---
                 VStack {
@@ -110,7 +127,7 @@ struct TelestrationsTurnView: View {
                             HStack {
                                 Image(systemName: "circle.fill")
                                     .font(.system(size: 5))
-                                Slider(value: $strokeWidth, in: 1...30) // Increased range for eraser
+                                Slider(value: $strokeWidth, in: 1...30)
                                     .tint(isEraserActive ? .pink : selectedColor)
                                 Image(systemName: "circle.fill")
                                     .font(.system(size: 20))
@@ -150,7 +167,7 @@ struct TelestrationsTurnView: View {
                                 drawing: $drawing,
                                 inkColor: selectedColor,
                                 inkWidth: strokeWidth,
-                                isEraser: isEraserActive // Pass eraser state
+                                isEraser: isEraserActive
                             )
                             .onAppear {
                                 canvasRect = geo.frame(in: .local)
@@ -257,20 +274,13 @@ struct TelestrationsTurnView: View {
                 captureRect = drawing.bounds.insetBy(dx: -20, dy: -20)
             }
             if captureRect.width <= 0 { captureRect = CGRect(x: 0, y: 0, width: 300, height: 350) }
-
-            // --- FIX STARTS HERE ---
             
-            // We define a variable to hold the image
             var image: UIImage = UIImage()
             
-            // We force the code block to execute assuming the device is in LIGHT mode.
-            // This ensures standard Black ink renders as Black (RGB 0,0,0)
-            // instead of inverting to White for Dark Mode.
+            // Force Light Mode for capture
             UITraitCollection(userInterfaceStyle: .light).performAsCurrent {
                 image = drawing.image(from: captureRect, scale: 1.0)
             }
-            
-            // --- FIX ENDS HERE ---
             
             if let pngData = image.pngData() {
                 nextHistory.append(.drawing(pngData))

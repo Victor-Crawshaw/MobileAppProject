@@ -37,7 +37,10 @@ struct HangmanWordSetupView: View {
                         .foregroundColor(.gray)
                         .padding(.leading, 5)
                     
-                    SecureField("", text: $secretWord)
+                    // --- CHANGED SECTION START ---
+                    TextField("", text: $secretWord)
+                        .textInputAutocapitalization(.characters) // Force Uppercase Keyboard
+                        .autocorrectionDisabled(true)             // Disable Suggestions
                         .textFieldStyle(.plain)
                         .font(.system(size: 24, weight: .bold, design: .monospaced))
                         .foregroundColor(.white)
@@ -50,9 +53,11 @@ struct HangmanWordSetupView: View {
                         )
                         .focused($isFocused)
                         .submitLabel(.done)
+                        // Assuming you have a View Extension for .placeholder(when:)
                         .placeholder(when: secretWord.isEmpty) {
                             Text("e.g. GALAXY").foregroundColor(.gray.opacity(0.5)).padding(.leading, 15)
                         }
+                    // --- CHANGED SECTION END ---
                     
                     if let error = errorMessage {
                         Text(error)
