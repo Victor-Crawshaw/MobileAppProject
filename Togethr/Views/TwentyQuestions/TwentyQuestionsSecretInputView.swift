@@ -4,26 +4,20 @@ struct TwentyQuestionsSecretInputView: View {
     
     // MARK: - Properties
     @Binding var navPath: NavigationPath
-    let category: String
     
-    // Input State
-    @State private var textInput: String = ""
-    @FocusState private var isFocused: Bool // Controls keyboard visibility
+    // Logic extracted to ViewModel (From Block 1)
+    @StateObject private var viewModel: SecretInputViewModel
+    @FocusState private var isFocused: Bool
     
-    // Dynamic placeholder based on the category string
-    private var placeholderText: String {
-        if category.contains("Animals") { return "e.g. Dolphin" }
-        if category.contains("Food") { return "e.g. Pizza" }
-        if category.contains("People") { return "e.g. Taylor Swift" }
-        if category.contains("Movies") { return "e.g. Star Wars" }
-        if category.contains("Objects") { return "e.g. Toaster" }
-        if category.contains("Places") { return "e.g. Paris" }
-        return "e.g. Magic" // Fallback
+    // Init to handle ViewModel creation
+    init(navPath: Binding<NavigationPath>, category: String) {
+        self._navPath = navPath
+        self._viewModel = StateObject(wrappedValue: SecretInputViewModel(category: category))
     }
     
     var body: some View {
         ZStack {
-            // Background
+            // Background (From Block 2)
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
             VStack(spacing: 30) {
@@ -31,7 +25,6 @@ struct TwentyQuestionsSecretInputView: View {
                 // MARK: Navigation Header
                 HStack {
                     Button(action: {
-                        // Go back to Category Selection
                         if !navPath.isEmpty { navPath.removeLast() }
                     }) {
                         HStack(spacing: 5) {
@@ -46,7 +39,7 @@ struct TwentyQuestionsSecretInputView: View {
                 }
                 .padding(.top, 10)
                 
-                // Instructions
+                // MARK: Instructions (From Block 2 Visuals)
                 VStack(spacing: 10) {
                     Text("SECRET TARGET")
                         .font(.system(size: 14, weight: .bold, design: .monospaced))
@@ -58,26 +51,27 @@ struct TwentyQuestionsSecretInputView: View {
                         .foregroundColor(.white)
                 }
                 
-                // MARK: Custom Input Field
+                // MARK: Custom Input Field (From Block 2 Visuals, Block 1 Logic)
                 VStack(alignment: .leading, spacing: 10) {
-                    Text(String(category.dropLast(1))) // Simple plural-to-singular logic: "Animals" -> "Animal"
+                    // "Animals" -> "Animal" logic
+                    Text(String(viewModel.category.dropLast(1)))
                         .font(.caption)
                         .foregroundColor(.gray)
                         .padding(.leading, 5)
                     
-                    TextField("", text: $textInput)
-                        // Uses the dynamic placeholderText property now
-                        .placeholder(when: textInput.isEmpty) {
-                            Text(placeholderText).foregroundColor(.gray.opacity(0.5))
+                    TextField("", text: $viewModel.textInput)
+                        .placeholder(when: viewModel.textInput.isEmpty) {
+                            // Uses ViewModel placeholder text, but Block 2 styling
+                            Text(viewModel.placeholderText).foregroundColor(.gray.opacity(0.5))
                         }
                         .font(.system(size: 24, weight: .bold, design: .rounded))
                         .foregroundColor(.teal)
                         .padding()
                         .background(
+                            // The specific styling you wanted to keep
                             RoundedRectangle(cornerRadius: 15)
                                 .fill(Color.black.opacity(0.3))
                                 .overlay(
-                                    // Highlights border when typing
                                     RoundedRectangle(cornerRadius: 15)
                                         .stroke(isFocused ? Color.teal : Color.white.opacity(0.1), lineWidth: 2)
                                 )
@@ -89,13 +83,12 @@ struct TwentyQuestionsSecretInputView: View {
                 
                 Spacer()
                 
-                // MARK: Confirm Button
+                // MARK: Confirm Button (From Block 2 Visuals, Block 1 Logic)
                 Button(action: {
-                    if !textInput.isEmpty {
-                        // Move to Confirmation Screen
+                    if viewModel.isInputValid {
                         navPath.append(GameNavigation.twentyQuestionsConfirm(
-                            category: category,
-                            secretWord: textInput
+                            category: viewModel.category,
+                            secretWord: viewModel.textInput
                         ))
                     }
                 }) {
@@ -107,27 +100,25 @@ struct TwentyQuestionsSecretInputView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 18)
                     .background(
-                        // Conditional coloring based on input validity
                         RoundedRectangle(cornerRadius: 16)
-                            .fill(textInput.isEmpty ? Color.gray.opacity(0.3) : Color.purple)
+                            .fill(viewModel.isInputValid ? Color.purple : Color.gray.opacity(0.3))
                     )
-                    .foregroundColor(textInput.isEmpty ? .white.opacity(0.3) : .white)
-                    .shadow(color: textInput.isEmpty ? .clear : .purple.opacity(0.5), radius: 10, y: 5)
+                    .foregroundColor(viewModel.isInputValid ? .white : .white.opacity(0.3))
+                    .shadow(color: viewModel.isInputValid ? .purple.opacity(0.5) : .clear, radius: 10, y: 5)
                 }
-                .disabled(textInput.isEmpty) // Prevent empty submissions
+                .disabled(!viewModel.isInputValid)
                 .padding(.horizontal, 40)
-                .padding(.bottom, 20) // Push up from keyboard
+                .padding(.bottom, 20)
             }
         }
         .onAppear {
-            isFocused = true // Auto-focus the text field
+            isFocused = true
         }
         .navigationBarHidden(true)
     }
 }
 
-// MARK: - Helper Extension for Custom Placeholder
-// This extension allows for a custom View (Text with color) to be used as a placeholder
+// MARK: - Helper Extension
 extension View {
     func placeholder<Content: View>(
         when shouldShow: Bool,
