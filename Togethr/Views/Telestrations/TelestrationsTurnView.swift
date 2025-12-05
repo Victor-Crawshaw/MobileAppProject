@@ -4,31 +4,17 @@ import PencilKit
 
 struct TelestrationsTurnView: View {
     @Binding var navPath: NavigationPath
-    @State var context: TelepathyContext
     
-    // --- State for Input ---
-    @State private var textInput: String = ""
-    
-    // --- State for Drawing ---
-    @State private var drawing = PKDrawing()
-    @State private var canvasRect: CGRect = .zero
-    
-    // Drawing Customization State
-    @State private var selectedColor: Color = .black
-    @State private var strokeWidth: Double = 5.0
-    
-    // Eraser State
-    @State private var isEraserActive: Bool = false
+    // We now use the ViewModel to handle state and logic
+    @StateObject private var viewModel: TelestrationsViewModel
     
     @FocusState private var isFocused: Bool
     
-    // Determine the current mode based on history
-    private var isDrawingRound: Bool {
-        guard let last = context.history.last else { return false }
-        switch last {
-        case .text: return true
-        case .drawing: return false
-        }
+    // Custom Init to inject context into the ViewModel
+    init(navPath: Binding<NavigationPath>, context: TelepathyContext) {
+        self._navPath = navPath
+        // Initialize the StateObject with the passed context
+        self._viewModel = StateObject(wrappedValue: TelestrationsViewModel(initialContext: context, initialPlayerCount: context.playerCount))
     }
     
     var body: some View {
@@ -55,7 +41,7 @@ struct TelestrationsTurnView: View {
                     Spacer()
                     
                     // Player Info
-                    Text("PLAYER \(context.nextPlayerNumber)")
+                    Text("PLAYER \(viewModel.context.nextPlayerNumber)")
                         .font(.system(size: 14, weight: .bold, design: .monospaced))
                         .foregroundColor(.teal)
                         .padding(8)
@@ -66,13 +52,13 @@ struct TelestrationsTurnView: View {
                 .padding(.top, 10)
                 
                 // Mission Text
-                Text(isDrawingRound ? "MISSION: DRAW THIS" : "MISSION: GUESS THIS")
+                Text(viewModel.missionLabel)
                     .font(.system(size: 14, weight: .bold, design: .monospaced))
                     .foregroundColor(.gray)
                 
                 // --- THE PROMPT ---
                 VStack {
-                    if let lastEntry = context.history.last {
+                    if let lastEntry = viewModel.context.history.last {
                         switch lastEntry {
                         case .text(let text):
                             Text(text.uppercased())
@@ -106,7 +92,7 @@ struct TelestrationsTurnView: View {
                 Spacer()
                 
                 // --- THE INPUT ---
-                if isDrawingRound {
+                if viewModel.isDrawingRound {
                     // === DRAWING MODE ===
                     VStack(spacing: 12) {
                         
@@ -115,8 +101,8 @@ struct TelestrationsTurnView: View {
                             
                             // -- Color Picker --
                             // Only visible if not erasing
-                            if !isEraserActive {
-                                ColorPicker("Ink Color", selection: $selectedColor)
+                            if !viewModel.isEraserActive {
+                                ColorPicker("Ink Color", selection: $viewModel.selectedColor)
                                     .labelsHidden()
                                     .padding(8)
                                     .background(Circle().fill(Color.white.opacity(0.1)))
@@ -127,8 +113,8 @@ struct TelestrationsTurnView: View {
                             HStack {
                                 Image(systemName: "circle.fill")
                                     .font(.system(size: 5))
-                                Slider(value: $strokeWidth, in: 1...30)
-                                    .tint(isEraserActive ? .pink : selectedColor)
+                                Slider(value: $viewModel.strokeWidth, in: 1...30)
+                                    .tint(viewModel.isEraserActive ? .pink : viewModel.selectedColor)
                                 Image(systemName: "circle.fill")
                                     .font(.system(size: 20))
                             }
@@ -139,20 +125,20 @@ struct TelestrationsTurnView: View {
                             // -- Eraser Toggle --
                             Button(action: {
                                 withAnimation(.spring()) {
-                                    isEraserActive.toggle()
+                                    viewModel.isEraserActive.toggle()
                                 }
                             }) {
-                                Image(systemName: isEraserActive ? "eraser.fill" : "eraser")
+                                Image(systemName: viewModel.isEraserActive ? "eraser.fill" : "eraser")
                                     .font(.title2)
-                                    .foregroundColor(isEraserActive ? .pink : .gray)
+                                    .foregroundColor(viewModel.isEraserActive ? .pink : .gray)
                                     .padding(8)
-                                    .background(isEraserActive ? Color.pink.opacity(0.2) : Color.clear)
+                                    .background(viewModel.isEraserActive ? Color.pink.opacity(0.2) : Color.clear)
                                     .clipShape(Circle())
                             }
                             
                             // -- Clear All --
                             Button(action: {
-                                drawing = PKDrawing()
+                                viewModel.drawing = PKDrawing()
                             }) {
                                 Image(systemName: "trash.circle.fill")
                                     .font(.title2)
@@ -164,16 +150,16 @@ struct TelestrationsTurnView: View {
                         // 2. The Canvas
                         GeometryReader { geo in
                             DrawingCanvas(
-                                drawing: $drawing,
-                                inkColor: selectedColor,
-                                inkWidth: strokeWidth,
-                                isEraser: isEraserActive
+                                drawing: $viewModel.drawing,
+                                inkColor: viewModel.selectedColor,
+                                inkWidth: viewModel.strokeWidth,
+                                isEraser: viewModel.isEraserActive
                             )
                             .onAppear {
-                                canvasRect = geo.frame(in: .local)
+                                viewModel.canvasRect = geo.frame(in: .local)
                             }
                             .onChange(of: geo.size) { _, newSize in
-                                canvasRect = CGRect(origin: .zero, size: newSize)
+                                viewModel.canvasRect = CGRect(origin: .zero, size: newSize)
                             }
                         }
                         .frame(height: 350)
@@ -181,13 +167,13 @@ struct TelestrationsTurnView: View {
                         .cornerRadius(16)
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
-                                .stroke(isEraserActive ? Color.pink : Color.teal, lineWidth: 4)
+                                .stroke(viewModel.isEraserActive ? Color.pink : Color.teal, lineWidth: 4)
                         )
                         
-                        Text(isEraserActive ? "Erasing..." : "Draw with your finger")
+                        Text(viewModel.isEraserActive ? "Erasing..." : "Draw with your finger")
                             .font(.caption)
-                            .foregroundColor(isEraserActive ? .pink : .gray)
-                            .animation(.default, value: isEraserActive)
+                            .foregroundColor(viewModel.isEraserActive ? .pink : .gray)
+                            .animation(.default, value: viewModel.isEraserActive)
                     }
                     .padding(.horizontal)
                     
@@ -200,7 +186,7 @@ struct TelestrationsTurnView: View {
                             .foregroundColor(.gray)
                             .padding(.leading, 5)
                         
-                        TextField("", text: $textInput)
+                        TextField("", text: $viewModel.textInput)
                             .font(.system(size: 24, weight: .bold, design: .monospaced))
                             .foregroundColor(.white)
                             .padding()
@@ -214,7 +200,7 @@ struct TelestrationsTurnView: View {
                             .submitLabel(.done)
                             .overlay(
                                 HStack {
-                                    if textInput.isEmpty {
+                                    if viewModel.textInput.isEmpty {
                                         Text("e.g. Alien Spaceship")
                                             .foregroundColor(.gray.opacity(0.5))
                                             .padding(.leading, 16)
@@ -233,7 +219,7 @@ struct TelestrationsTurnView: View {
                 // --- DONE BUTTON ---
                 Button(action: handleDone) {
                     HStack {
-                        Text(context.history.count + 1 == context.playerCount ? "FINISH GAME" : "LOCK IN & PASS")
+                        Text(viewModel.submitButtonLabel)
                         Image(systemName: "arrow.right.circle.fill")
                     }
                     .font(.system(size: 18, weight: .heavy, design: .rounded))
@@ -241,12 +227,12 @@ struct TelestrationsTurnView: View {
                     .padding(.vertical, 18)
                     .background(
                         RoundedRectangle(cornerRadius: 16)
-                            .fill(canSubmit ? Color.teal : Color.gray.opacity(0.3))
+                            .fill(viewModel.canSubmit ? Color.teal : Color.gray.opacity(0.3))
                     )
-                    .foregroundColor(canSubmit ? .white : .white.opacity(0.3))
-                    .shadow(color: canSubmit ? .teal.opacity(0.5) : .clear, radius: 10, y: 5)
+                    .foregroundColor(viewModel.canSubmit ? .white : .white.opacity(0.3))
+                    .shadow(color: viewModel.canSubmit ? .teal.opacity(0.5) : .clear, radius: 10, y: 5)
                 }
-                .disabled(!canSubmit)
+                .disabled(!viewModel.canSubmit)
                 .padding(.horizontal, 40)
                 .padding(.bottom, 20)
             }
@@ -256,46 +242,13 @@ struct TelestrationsTurnView: View {
     
     // --- LOGIC ---
     
-    private var canSubmit: Bool {
-        if isDrawingRound {
-            return !drawing.bounds.isEmpty
-        } else {
-            return !textInput.trimmingCharacters(in: .whitespaces).isEmpty
-        }
-    }
-    
     private func handleDone() {
-        var nextHistory = context.history
-        
-        if isDrawingRound {
-            // Safeguard for rect
-            var captureRect = canvasRect
-            if captureRect.width <= 0 || captureRect.height <= 0 {
-                captureRect = drawing.bounds.insetBy(dx: -20, dy: -20)
+        if let nextContext = viewModel.submitTurn() {
+            if nextContext.isGameOver {
+                navPath.append(GameNavigation.telestrationsResult(context: nextContext))
+            } else {
+                navPath.append(GameNavigation.telestrationsPass(context: nextContext))
             }
-            if captureRect.width <= 0 { captureRect = CGRect(x: 0, y: 0, width: 300, height: 350) }
-            
-            var image: UIImage = UIImage()
-            
-            // Force Light Mode for capture
-            UITraitCollection(userInterfaceStyle: .light).performAsCurrent {
-                image = drawing.image(from: captureRect, scale: 1.0)
-            }
-            
-            if let pngData = image.pngData() {
-                nextHistory.append(.drawing(pngData))
-            }
-        } else {
-            nextHistory.append(.text(textInput))
-        }
-        
-        var nextContext = context
-        nextContext.history = nextHistory
-        
-        if nextContext.isGameOver {
-            navPath.append(GameNavigation.telestrationsResult(context: nextContext))
-        } else {
-            navPath.append(GameNavigation.telestrationsPass(context: nextContext))
         }
     }
 }
