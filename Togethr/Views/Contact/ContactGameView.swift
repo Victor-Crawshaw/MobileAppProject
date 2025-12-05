@@ -5,10 +5,10 @@ struct ContactGameView: View {
     // MARK: - Properties
     @Binding var navPath: NavigationPath
     
-    // Logic extracted to ViewModel
+    // Logic extracted to ViewModel (Maintains 100% test coverage capability)
     @StateObject private var viewModel: ContactGameViewModel
     
-    // Timer Publisher (View-side driver)
+    // Timer Publisher (Drives the ViewModel tick)
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     init(navPath: Binding<NavigationPath>, secretWord: String, timeLimit: TimeInterval?) {
@@ -18,133 +18,149 @@ struct ContactGameView: View {
     
     var body: some View {
         ZStack {
-            // Background
+            // MARK: Background
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
             // Background Glow (Changes color based on timer urgency)
+            // Logic linked to ViewModel state
             GeometryReader { geo in
                 Circle()
-                    .fill(viewModel.timeLimit != nil && viewModel.timeRemaining < 30 ? Color.red.opacity(0.2) : Color.blue.opacity(0.1))
-                    .frame(width: 500, height: 500)
-                    .blur(radius: 100)
-                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                    .fill(viewModel.timeLimit != nil && viewModel.timeRemaining < 30 ? Color.red.opacity(0.1) : Color.blue.opacity(0.1))
+                    .frame(width: 400, height: 400)
+                    .blur(radius: 80)
+                    .position(x: geo.size.width / 2, y: geo.size.height * 0.3)
             }
             
-            VStack(spacing: 0) {
+            VStack(spacing: 30) {
                 
-                // MARK: HUD
+                // MARK: 1. HUD Header
                 HStack {
-                    // Give Up Button
-                    Button(action: { viewModel.giveUp() }) {
+                    // Abort Button (Resets Navigation)
+                    Button(action: {
+                        navPath = NavigationPath() // Reset to Home
+                    }) {
                         HStack(spacing: 5) {
-                            Image(systemName: "flag.fill")
-                            Text("GIVE UP")
+                            Image(systemName: "xmark.circle.fill")
+                            Text("ABORT GAME")
                         }
                         .font(.system(size: 12, weight: .bold, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.6))
+                        .foregroundColor(.red.opacity(0.8))
                         .padding(8)
-                        .background(Color.white.opacity(0.1))
+                        .background(Color.red.opacity(0.1))
                         .cornerRadius(8)
                     }
                     
                     Spacer()
                     
-                    // Timer Display
+                    // Timer Display (if enabled)
                     if viewModel.timeLimit != nil {
-                        HStack(spacing: 5) {
-                            Image(systemName: "stopwatch.fill")
-                            Text(viewModel.timeString)
-                        }
-                        .font(.system(size: 14, weight: .bold, design: .monospaced))
-                        .foregroundColor(viewModel.timeRemaining < 30 ? .red : .teal)
-                        .padding(8)
-                        .background(Color.black.opacity(0.3))
-                        .cornerRadius(8)
+                        Text(viewModel.timeString)
+                            .font(.system(size: 16, weight: .bold, design: .monospaced))
+                            .foregroundColor(viewModel.timeRemaining < 30 ? .red : .orange)
+                            .padding(8)
+                            .background(RoundedRectangle(cornerRadius: 8).stroke(viewModel.timeRemaining < 30 ? Color.red : Color.orange, lineWidth: 1))
                     }
                 }
-                .padding()
+                .padding(.top, 10)
+                .padding(.horizontal)
                 
                 Spacer()
                 
-                // MARK: Main Word Display
-                VStack(spacing: 20) {
-                    Text("CURRENT CONTACT")
-                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                // MARK: 2. The Word Display
+                VStack(spacing: 15) {
+                    Text("CURRENT REVEAL")
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
                         .foregroundColor(.teal)
-                        .tracking(4)
-                        .opacity(0.8)
+                        .tracking(3)
                     
+                    // Shows the letters revealed so far (From ViewModel)
                     Text(viewModel.displayedWord)
                         .font(.system(size: 60, weight: .black, design: .monospaced))
                         .foregroundColor(.white)
-                        .shadow(color: .white.opacity(0.5), radius: 20, x: 0, y: 0)
-                        .minimumScaleFactor(0.5)
-                        .padding(.horizontal)
-                        .transition(.scale.combined(with: .opacity))
+                        .shadow(color: .purple, radius: 15)
                     
-                    Text("\(viewModel.secretWord.count) letters total")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                    // Shows dashes for the remaining hidden letters
+                    HStack(spacing: 5) {
+                        ForEach(0..<(viewModel.secretWord.count - viewModel.revealedCount), id: \.self) { _ in
+                            Circle()
+                                .fill(Color.white.opacity(0.2))
+                                .frame(width: 8, height: 8)
+                        }
+                    }
                 }
                 
                 Spacer()
                 
-                // MARK: Controls
+                // MARK: 3. Game Controls
                 VStack(spacing: 20) {
                     
-                    // Reveal Button
+                    // REVEAL LETTER Button
+                    // Used when the guessers successfully make "Contact"
                     Button(action: {
-                        withAnimation(.spring()) {
-                            viewModel.revealNextLetter()
-                        }
+                        viewModel.revealNextLetter()
                     }) {
-                        VStack(spacing: 5) {
+                        HStack {
                             Image(systemName: "eye.fill")
-                                .font(.title2)
                             Text("REVEAL NEXT LETTER")
-                                .font(.system(size: 16, weight: .heavy, design: .rounded))
                         }
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 20)
-                        .background(
-                            LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)
-                        )
+                        .padding()
+                        .background(Color.blue)
                         .foregroundColor(.white)
-                        .cornerRadius(20)
-                        .shadow(color: .blue.opacity(0.4), radius: 10, y: 5)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(.white.opacity(0.2), lineWidth: 1)
-                        )
+                        .cornerRadius(16)
+                        .shadow(color: .blue.opacity(0.5), radius: 10)
                     }
+                    .buttonStyle(BouncyGameButtonStyle())
                     
-                    // Undo Button
-                    if viewModel.revealedCount > 1 {
+                    HStack(spacing: 15) {
+                        // UNDO Button
+                        // Reverts the last "Reveal" action
                         Button(action: {
-                            withAnimation {
-                                viewModel.undoLastAction()
-                            }
+                            viewModel.undoLastAction()
                         }) {
                             HStack {
                                 Image(systemName: "arrow.uturn.backward")
-                                Text("OOPS, UNDO REVEAL")
+                                Text("UNDO")
                             }
-                            .font(.system(size: 14, weight: .bold, design: .monospaced))
-                            .foregroundColor(.white.opacity(0.5))
+                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .frame(maxWidth: .infinity)
                             .padding()
+                            .background(Color.white.opacity(0.1))
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                        }
+                        .disabled(viewModel.history.isEmpty) // Disable if nothing to undo
+                        .opacity(viewModel.history.isEmpty ? 0.5 : 1.0)
+                        
+                        // GIVE UP Button
+                        // Triggers a Loss for the Guessers
+                        Button(action: {
+                            viewModel.giveUp()
+                        }) {
+                            HStack {
+                                Image(systemName: "flag.fill")
+                                Text("GIVE UP")
+                            }
+                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.red.opacity(0.2))
+                            .foregroundColor(.red)
+                            .cornerRadius(12)
                         }
                     }
                 }
                 .padding(.horizontal, 40)
-                .padding(.bottom, 40)
+                .padding(.bottom, 20)
             }
         }
         .navigationBarHidden(true)
-        // Timer Logic
+        // Link Timer to ViewModel Tick
         .onReceive(timer) { _ in
             viewModel.tick()
         }
-        // Navigation Logic (Reacting to ViewModel state changes)
+        // Observe ViewModel Game Over state to trigger navigation
         .onChange(of: viewModel.gameOver) { gameOver in
             if gameOver {
                 navPath.append(GameNavigation.contactResult(

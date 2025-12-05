@@ -1,3 +1,4 @@
+// Views/Contact/ContactWordSetupView.swift
 import SwiftUI
 
 struct ContactWordSetupView: View {
@@ -5,18 +6,19 @@ struct ContactWordSetupView: View {
     // MARK: - Properties
     @Binding var navPath: NavigationPath
     
-    // Replaced local state with ViewModel
+    // Logic extracted to ViewModel (Maintains 100% test coverage capability)
     @StateObject private var viewModel = ContactSetupViewModel()
-    @FocusState private var isFocused: Bool
+    @FocusState private var isFocused: Bool // Controls keyboard focus
     
     var body: some View {
         ZStack {
-            // Background
+            // MARK: Background
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
             VStack(spacing: 30) {
                 
-                // Header
+                // MARK: Navigation Header
+                // Includes logic to remove the current view from the stack
                 HStack {
                     Button(action: {
                         if !navPath.isEmpty { navPath.removeLast() }
@@ -33,67 +35,102 @@ struct ContactWordSetupView: View {
                 }
                 .padding(.top, 10)
                 
-                // Page Header
+                // MARK: Page Header
                 VStack(spacing: 10) {
-                    Text("DEFENDER SETUP")
+                    Text("SETUP PHASE")
                         .font(.system(size: 14, weight: .bold, design: .monospaced))
                         .foregroundColor(.teal)
                         .tracking(2)
                     
-                    Text("Enter Secret Word")
+                    Text("Secret Word")
                         .font(.system(size: 32, weight: .black, design: .rounded))
                         .foregroundColor(.white)
                 }
                 
-                // Validation Error Message
-                if let error = viewModel.errorMessage {
-                    Text(error)
+                // MARK: Input Field
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("DEFENDER INPUT ONLY")
                         .font(.caption)
-                        .foregroundColor(.red)
-                        .padding(.horizontal)
-                        .transition(.opacity)
-                }
-                
-                // Input Field
-                TextField("", text: $viewModel.secretWord)
-                    .placeholder(when: viewModel.secretWord.isEmpty) {
-                        Text("e.g. ASTEROID").foregroundColor(.gray)
-                    }
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .foregroundColor(.teal)
-                    .multilineTextAlignment(.center)
-                    .padding()
-                    .focused($isFocused)
-                    .submitLabel(.done)
-                
-                // Timer Toggle
-                VStack(spacing: 15) {
-                    Toggle("Enable Time Limit", isOn: $viewModel.isTimerEnabled)
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                        .tint(.teal)
-                        .padding(.horizontal, 40)
+                        .fontDesign(.monospaced)
+                        .foregroundColor(.gray)
+                        .padding(.leading, 5)
                     
+                    // TextField ensures visibility (SecureField would hide it, but Defender might want to check spelling)
+                    TextField("", text: $viewModel.secretWord)
+                        .placeholder(when: viewModel.secretWord.isEmpty) {
+                            Text("e.g. ASTEROID").foregroundColor(.gray.opacity(0.5))
+                        }
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundColor(.teal)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(Color.black.opacity(0.3))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .stroke(isFocused ? Color.teal : Color.white.opacity(0.1), lineWidth: 2)
+                                )
+                        )
+                        .focused($isFocused)
+                        .submitLabel(.done)
+                        // Clear error when typing (Logic handled here for UI responsiveness)
+                        .onChange(of: viewModel.secretWord) { _ in viewModel.errorMessage = nil }
+                    
+                    // Error Message Display
+                    if let error = viewModel.errorMessage {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.leading, 5)
+                    }
+                }
+                .padding(.horizontal, 30)
+                
+                // MARK: Timer Toggle Section
+                VStack(spacing: 15) {
+                    Toggle(isOn: $viewModel.isTimerEnabled) {
+                        HStack {
+                            Image(systemName: "timer")
+                                .foregroundColor(.orange)
+                            Text("Enable Time Limit")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .tint(.orange)
+                    .padding()
+                    .background(Color.white.opacity(0.05))
+                    .cornerRadius(12)
+                    
+                    // Conditional Slider for duration
                     if viewModel.isTimerEnabled {
-                        VStack {
-                            Text("\(viewModel.timerDurationMinutes) Minutes")
-                                .font(.system(size: 24, weight: .black, design: .monospaced))
-                                .foregroundColor(.teal)
+                        VStack(spacing: 5) {
+                            HStack {
+                                Text("Duration")
+                                    .foregroundColor(.gray)
+                                Spacer()
+                                Text("\(viewModel.timerDurationMinutes) Minutes")
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.orange)
+                            }
                             
                             Slider(value: Binding(
                                 get: { Double(viewModel.timerDurationMinutes) },
                                 set: { viewModel.timerDurationMinutes = Int($0) }
                             ), in: 1...15, step: 1)
-                            .accentColor(.teal)
+                            .accentColor(.orange)
                         }
-                        .padding(.horizontal, 40)
+                        .padding()
+                        .background(Color.white.opacity(0.05))
+                        .cornerRadius(12)
                         .transition(.move(edge: .top).combined(with: .opacity))
                     }
                 }
+                .padding(.horizontal, 30)
                 
                 Spacer()
                 
-                // Confirm Button
+                // MARK: Confirm / Start Button
                 Button(action: {
                     if viewModel.validateSettings() {
                         navPath.append(GameNavigation.contactGame(
@@ -103,8 +140,8 @@ struct ContactWordSetupView: View {
                     }
                 }) {
                     HStack {
-                        Text("LOCK IT IN")
-                        Image(systemName: "lock.fill")
+                        Text("LOCK & START")
+                        Image(systemName: "lock.shield.fill")
                     }
                     .font(.system(size: 18, weight: .heavy, design: .rounded))
                     .frame(maxWidth: .infinity)
@@ -117,11 +154,12 @@ struct ContactWordSetupView: View {
                     .shadow(color: viewModel.secretWord.isEmpty ? .clear : .purple.opacity(0.5), radius: 10, y: 5)
                 }
                 .disabled(viewModel.secretWord.isEmpty)
+                .buttonStyle(BouncyGameButtonStyle())
                 .padding(.horizontal, 40)
                 .padding(.bottom, 20)
             }
         }
-        .onAppear { isFocused = true }
+        .onAppear { isFocused = true } // Auto-focus input
         .toolbarBackground(.hidden, for: .navigationBar)
         .animation(.spring(), value: viewModel.isTimerEnabled)
         .navigationBarHidden(true)
