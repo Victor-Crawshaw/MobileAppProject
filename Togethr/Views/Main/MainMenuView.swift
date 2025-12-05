@@ -34,17 +34,18 @@ struct MainMenuView: View {
     ]
     
     private var filteredGames: [Game] {
-        switch selectedFilter {
-        case .all:
-            return allGames
-        case .inPerson:
-            return allGames.filter { $0.mode == .inPerson }
-        case .online:
-            return allGames.filter { $0.mode == .online }
-        case .passAndPlay:
-            return allGames.filter { $0.mode == .passAndPlay }
+            switch selectedFilter {
+            case .all:
+                return allGames
+            case .inPerson:
+                // Check if the game's modes array contains .inPerson
+                return allGames.filter { $0.modes.contains(.inPerson) }
+            case .online:
+                return allGames.filter { $0.modes.contains(.online) }
+            case .passAndPlay:
+                return allGames.filter { $0.modes.contains(.passAndPlay) }
+            }
         }
-    }
     
     var body: some View {
         NavigationStack(path: $navPath) {

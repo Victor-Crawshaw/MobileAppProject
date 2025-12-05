@@ -10,6 +10,17 @@ struct TwentyQuestionsSecretInputView: View {
     @State private var textInput: String = ""
     @FocusState private var isFocused: Bool // Controls keyboard visibility
     
+    // Dynamic placeholder based on the category string
+    private var placeholderText: String {
+        if category.contains("Animals") { return "e.g. Dolphin" }
+        if category.contains("Food") { return "e.g. Pizza" }
+        if category.contains("People") { return "e.g. Taylor Swift" }
+        if category.contains("Movies") { return "e.g. Star Wars" }
+        if category.contains("Objects") { return "e.g. Toaster" }
+        if category.contains("Places") { return "e.g. Paris" }
+        return "e.g. Magic" // Fallback
+    }
+    
     var body: some View {
         ZStack {
             // Background
@@ -55,9 +66,9 @@ struct TwentyQuestionsSecretInputView: View {
                         .padding(.leading, 5)
                     
                     TextField("", text: $textInput)
-                        // Uses the custom extension below for colored placeholders
+                        // Uses the dynamic placeholderText property now
                         .placeholder(when: textInput.isEmpty) {
-                            Text("e.g. Dolphin").foregroundColor(.gray.opacity(0.5))
+                            Text(placeholderText).foregroundColor(.gray.opacity(0.5))
                         }
                         .font(.system(size: 24, weight: .bold, design: .rounded))
                         .foregroundColor(.teal)
