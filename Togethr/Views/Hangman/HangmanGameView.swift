@@ -1,102 +1,35 @@
 // Views/Hangman/HangmanGameView.swift
 import SwiftUI
 
-struct HangmanGameView: View {
-    
-    @Binding var navPath: NavigationPath
+// MARK: - View Model (The Logic)
+class HangmanGameViewModel: ObservableObject {
     let secretWord: String
     
-    @State private var guessedLetters: Set<Character> = []
-    @State private var incorrectGuesses: Int = 0
+    @Published var guessedLetters: Set<Character> = []
+    @Published var incorrectGuesses: Int = 0
+    @Published var isGameOver: Bool = false
+    @Published var didWin: Bool = false
     
-    private let maxIncorrectGuesses = 6
-    private let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    let maxIncorrectGuesses = 6
     
-    // Normalize (Uppercased)
-    private var normalizedSecret: String { secretWord.uppercased() }
+    var normalizedSecret: String { secretWord.uppercased() }
     
-    // Display Logic
-    private var displayWord: String {
+    init(secretWord: String) {
+        self.secretWord = secretWord
+    }
+    
+    var displayWord: String {
         normalizedSecret.map { char in
             if char.isLetter {
                 return guessedLetters.contains(char) ? String(char) : "_"
             } else {
-                return String(char)
+                return String(char) // Spaces or punctuation are always shown
             }
         }.joined(separator: " ")
     }
     
-    var body: some View {
-        ZStack {
-            // Background
-            Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
-            
-            // Glow behind the Hangman
-            GeometryReader { geo in
-                Circle()
-                    .fill(Color.orange.opacity(0.1))
-                    .frame(width: 300, height: 300)
-                    .blur(radius: 80)
-                    .position(x: geo.size.width / 2, y: geo.size.height * 0.25)
-            }
-            
-            VStack(spacing: 0) {
-                
-                // HUD Header
-                HStack {
-                    Button(action: { navPath = NavigationPath() }) {
-                        HStack(spacing: 5) {
-                            Image(systemName: "xmark.circle.fill")
-                            Text("ABORT")
-                        }
-                        .font(.system(size: 12, weight: .bold, design: .monospaced))
-                        .foregroundColor(.red.opacity(0.8))
-                        .padding(8)
-                        .background(Color.red.opacity(0.1))
-                        .cornerRadius(8)
-                    }
-                    Spacer()
-                    Text("LIVES: \(maxIncorrectGuesses - incorrectGuesses)")
-                        .font(.system(size: 12, weight: .bold, design: .monospaced))
-                        .foregroundColor(incorrectGuesses > 3 ? .red : .teal)
-                }
-                .padding()
-                
-                // Drawing Area
-                ZStack {
-                    HangmanDrawingView(incorrectGuesses: incorrectGuesses)
-                        .frame(width: 200, height: 200)
-                }
-                .padding(.vertical, 20)
-                
-                // Word Display
-                Text(displayWord)
-                    .font(.system(size: 32, weight: .bold, design: .monospaced))
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.white.opacity(0.05))
-                
-                Spacer()
-                
-                // Keyboard
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 40), spacing: 8)], spacing: 8) {
-                    ForEach(Array(alphabet), id: \.self) { letter in
-                        LetterButton(letter: letter, status: getStatus(for: letter)) {
-                            guess(letter)
-                        }
-                    }
-                }
-                .padding(20)
-            }
-        }
-        .navigationBarHidden(true)
-    }
-    
-    // --- Logic ---
-    
     func guess(_ letter: Character) {
+        guard !isGameOver else { return }
         guard !guessedLetters.contains(letter) else { return }
         
         guessedLetters.insert(letter)
@@ -114,25 +47,115 @@ struct HangmanGameView: View {
         return .incorrect
     }
     
-    func checkGameStatus() {
+    private func checkGameStatus() {
         let lettersInSecret = Set(normalizedSecret.filter { $0.isLetter })
         let isWon = lettersInSecret.isSubset(of: guessedLetters)
         let isLost = incorrectGuesses >= maxIncorrectGuesses
         
         if isWon {
-            navigateToResult(didWin: true)
+            isGameOver = true
+            didWin = true
         } else if isLost {
-            navigateToResult(didWin: false)
+            isGameOver = true
+            didWin = false
+        }
+    }
+}
+
+// MARK: - The View
+struct HangmanGameView: View {
+    
+    @Binding var navPath: NavigationPath
+    // Use StateObject to own the VM
+    @StateObject private var vm: HangmanGameViewModel
+    
+    // Custom Init to inject the secret word
+    init(navPath: Binding<NavigationPath>, secretWord: String) {
+        self._navPath = navPath
+        self._vm = StateObject(wrappedValue: HangmanGameViewModel(secretWord: secretWord))
+    }
+    
+    private let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    
+    var body: some View {
+        ZStack {
+            Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
+            
+            // Glow
+            GeometryReader { geo in
+                Circle()
+                    .fill(Color.orange.opacity(0.1))
+                    .frame(width: 300, height: 300)
+                    .blur(radius: 80)
+                    .position(x: geo.size.width / 2, y: geo.size.height * 0.25)
+            }
+            
+            VStack(spacing: 0) {
+                
+                // HUD
+                HStack {
+                    Button(action: { navPath = NavigationPath() }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "xmark.circle.fill")
+                            Text("ABORT")
+                        }
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .foregroundColor(.red.opacity(0.8))
+                        .padding(8)
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                    Spacer()
+                    Text("LIVES: \(vm.maxIncorrectGuesses - vm.incorrectGuesses)")
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .foregroundColor(vm.incorrectGuesses > 3 ? .red : .teal)
+                }
+                .padding()
+                
+                // Drawing
+                ZStack {
+                    HangmanDrawingView(incorrectGuesses: vm.incorrectGuesses)
+                        .frame(width: 200, height: 200)
+                }
+                .padding(.vertical, 20)
+                
+                // Word Display
+                Text(vm.displayWord)
+                    .font(.system(size: 32, weight: .bold, design: .monospaced))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.white.opacity(0.05))
+                
+                Spacer()
+                
+                // Keyboard
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 40), spacing: 8)], spacing: 8) {
+                    ForEach(Array(alphabet), id: \.self) { letter in
+                        LetterButton(letter: letter, status: vm.getStatus(for: letter)) {
+                            vm.guess(letter)
+                        }
+                    }
+                }
+                .padding(20)
+            }
+        }
+        .navigationBarHidden(true)
+        // React to VM state changes for navigation
+        .onChange(of: vm.isGameOver) { newValue in
+            if newValue {
+                navigateToResult(didWin: vm.didWin)
+            }
         }
     }
     
     func navigateToResult(didWin: Bool) {
-        // Small delay to let the user see the final move
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             navPath.append(GameNavigation.hangmanResult(
                 didWin: didWin,
-                secretWord: secretWord,
-                incorrectGuesses: incorrectGuesses
+                secretWord: vm.secretWord,
+                incorrectGuesses: vm.incorrectGuesses
             ))
         }
     }
