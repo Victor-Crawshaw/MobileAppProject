@@ -1,99 +1,30 @@
 // Views/Hangman/HangmanGameView.swift
 import SwiftUI
 
-// MARK: - View Model (The Logic)
-class HangmanGameViewModel: ObservableObject {
-    let secretWord: String
-    
-    @Published var guessedLetters: Set<Character> = []
-    @Published var incorrectGuesses: Int = 0
-    @Published var isGameOver: Bool = false
-    @Published var didWin: Bool = false
-    
-    let maxIncorrectGuesses = 6
-    
-    var normalizedSecret: String { secretWord.uppercased() }
-    
-    init(secretWord: String) {
-        self.secretWord = secretWord
-    }
-    
-    var displayWord: String {
-        normalizedSecret.map { char in
-            if char.isLetter {
-                return guessedLetters.contains(char) ? String(char) : "_"
-            } else {
-                return String(char) // Spaces or punctuation are always shown
-            }
-        }.joined(separator: " ")
-    }
-    
-    func guess(_ letter: Character) {
-        guard !isGameOver else { return }
-        guard !guessedLetters.contains(letter) else { return }
-        
-        guessedLetters.insert(letter)
-        
-        if !normalizedSecret.contains(letter) {
-            incorrectGuesses += 1
-        }
-        
-        checkGameStatus()
-    }
-    
-    func getStatus(for letter: Character) -> LetterStatus {
-        if !guessedLetters.contains(letter) { return .unused }
-        if normalizedSecret.contains(letter) { return .correct }
-        return .incorrect
-    }
-    
-    private func checkGameStatus() {
-        let lettersInSecret = Set(normalizedSecret.filter { $0.isLetter })
-        let isWon = lettersInSecret.isSubset(of: guessedLetters)
-        let isLost = incorrectGuesses >= maxIncorrectGuesses
-        
-        if isWon {
-            isGameOver = true
-            didWin = true
-        } else if isLost {
-            isGameOver = true
-            didWin = false
-        }
-    }
-}
-
-// MARK: - The View
 struct HangmanGameView: View {
     
     @Binding var navPath: NavigationPath
-    // Use StateObject to own the VM
-    @StateObject private var vm: HangmanGameViewModel
     
-    // Custom Init to inject the secret word
+    // REPLACE @State vars with the ViewModel
+    @StateObject private var viewModel: HangmanGameViewModel
+    
     init(navPath: Binding<NavigationPath>, secretWord: String) {
         self._navPath = navPath
-        self._vm = StateObject(wrappedValue: HangmanGameViewModel(secretWord: secretWord))
+        // Initialize the VM with the passed word
+        self._viewModel = StateObject(wrappedValue: HangmanGameViewModel(secretWord: secretWord))
     }
     
-    private let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    // ... Background and GeometryReader remain the same ...
     
     var body: some View {
         ZStack {
+            // ... (keep your existing UI code: Background, Glow) ...
             Color(red: 0.05, green: 0.0, blue: 0.15).ignoresSafeArea()
             
-            // Glow
-            GeometryReader { geo in
-                Circle()
-                    .fill(Color.orange.opacity(0.1))
-                    .frame(width: 300, height: 300)
-                    .blur(radius: 80)
-                    .position(x: geo.size.width / 2, y: geo.size.height * 0.25)
-            }
-            
             VStack(spacing: 0) {
-                
-                // HUD
+                // HUD Header
                 HStack {
+                    // ... (keep abort button code) ...
                     Button(action: { navPath = NavigationPath() }) {
                         HStack(spacing: 5) {
                             Image(systemName: "xmark.circle.fill")
@@ -106,21 +37,24 @@ struct HangmanGameView: View {
                         .cornerRadius(8)
                     }
                     Spacer()
-                    Text("LIVES: \(vm.maxIncorrectGuesses - vm.incorrectGuesses)")
+                    // UPDATE: Use viewModel
+                    Text("LIVES: \(viewModel.remainingLives)")
                         .font(.system(size: 12, weight: .bold, design: .monospaced))
-                        .foregroundColor(vm.incorrectGuesses > 3 ? .red : .teal)
+                        .foregroundColor(viewModel.incorrectGuesses > 3 ? .red : .teal)
                 }
                 .padding()
                 
-                // Drawing
+                // Drawing Area
                 ZStack {
-                    HangmanDrawingView(incorrectGuesses: vm.incorrectGuesses)
+                    // UPDATE: Use viewModel
+                    HangmanDrawingView(incorrectGuesses: viewModel.incorrectGuesses)
                         .frame(width: 200, height: 200)
                 }
                 .padding(.vertical, 20)
                 
                 // Word Display
-                Text(vm.displayWord)
+                // UPDATE: Use viewModel
+                Text(viewModel.displayWord) 
                     .font(.system(size: 32, weight: .bold, design: .monospaced))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
@@ -131,10 +65,12 @@ struct HangmanGameView: View {
                 Spacer()
                 
                 // Keyboard
+                // FIXED: This fixes your LazyVGrid error
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 40), spacing: 8)], spacing: 8) {
-                    ForEach(Array(alphabet), id: \.self) { letter in
-                        LetterButton(letter: letter, status: vm.getStatus(for: letter)) {
-                            vm.guess(letter)
+                    ForEach(Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), id: \.self) { letter in
+                        // UPDATE: Use viewModel
+                        LetterButton(letter: letter, status: viewModel.getStatus(for: letter)) {
+                            viewModel.guess(letter)
                         }
                     }
                 }
@@ -142,10 +78,10 @@ struct HangmanGameView: View {
             }
         }
         .navigationBarHidden(true)
-        // React to VM state changes for navigation
-        .onChange(of: vm.isGameOver) { newValue in
+        // UPDATE: Listen for Game Over
+        .onChange(of: viewModel.isGameOver) { newValue in
             if newValue {
-                navigateToResult(didWin: vm.didWin)
+                navigateToResult(didWin: viewModel.didWin)
             }
         }
     }
@@ -154,8 +90,8 @@ struct HangmanGameView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             navPath.append(GameNavigation.hangmanResult(
                 didWin: didWin,
-                secretWord: vm.secretWord,
-                incorrectGuesses: vm.incorrectGuesses
+                secretWord: viewModel.secretWord,
+                incorrectGuesses: viewModel.incorrectGuesses
             ))
         }
     }

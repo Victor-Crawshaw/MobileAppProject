@@ -1,5 +1,5 @@
 import XCTest
-@testable import Togethr // ⚠️ REPLACE 'Togethr' WITH YOUR PROJECT NAME
+@testable import Togethr
 
 final class TwentyQuestionsLogicTests: XCTestCase {
 
